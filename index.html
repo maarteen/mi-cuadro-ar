@@ -2,19 +2,63 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Volvemos a las versiones 100% estables y compatibles -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    
+    <style>
+      #btn-sonido {
+        position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+        z-index: 9999; padding: 15px 25px; font-size: 16px; font-family: sans-serif;
+        background: rgba(0,0,0,0.8); color: white; border: 2px solid white; border-radius: 25px;
+        display: none; /* Se oculta hasta que detecte la foto */
+      }
+    </style>
+
+    <script>
+      AFRAME.registerComponent('controlador-video', {
+        init: function () {
+          const video = document.querySelector("#miVideo");
+          const boton = document.querySelector("#btn-sonido");
+
+          // Cuando detecta el cuadro
+          this.el.addEventListener('targetFound', () => {
+            video.play();
+            boton.style.display = "block"; // Aparece el botón
+          });
+
+          // Cuando dejas de apuntar al cuadro
+          this.el.addEventListener('targetLost', () => {
+            video.pause();
+            boton.style.display = "none"; // Desaparece el botón
+          });
+
+          // Al tocar el botón de sonido
+          boton.addEventListener('click', () => {
+            video.muted = false;
+            boton.innerText = "🔊 Sonido Activado";
+            boton.style.background = "#2ed573";
+            boton.style.borderColor = "#2ed573";
+          });
+        }
+      });
+    </script>
   </head>
+
   <body>
-    <!-- Le quitamos el ./ al archivo por si GitHub Pages está haciendo un enredo con las rutas -->
+    <button id="btn-sonido">🔇 Tocar para escuchar</button>
+
     <a-scene mindar-image="imageTargetSrc: targets.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
+      <a-assets>
+        <!-- Como el video ya está en tu GitHub, usamos ./video.mp4 -->
+        <video id="miVideo" src="./video.mp4" preload="auto" loop="true" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
+      </a-assets>
+
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0">
-        <!-- Un simple plano azul para ver si detecta la imagen -->
-        <a-plane color="blue" opacity="0.8" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
+      <a-entity mindar-image-target="targetIndex: 0" controlador-video>
+        <!-- El video proyectado sobre la foto -->
+        <a-video src="#miVideo" width="1" height="0.6" position="0 0 0"></a-video>
       </a-entity>
       
     </a-scene>
