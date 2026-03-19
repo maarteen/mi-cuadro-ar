@@ -2,53 +2,66 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
     <script>
-      // Detectar si hay errores cargando el archivo .mind
-      window.addEventListener("load", () => {
-        const sceneEl = document.querySelector('a-scene');
-        sceneEl.addEventListener("arError", (event) => {
-          alert("Error de AR: " + event.detail.error);
-        });
+      AFRAME.registerComponent('video-control', {
+        init: function () {
+          const video = document.querySelector("#videoPareja");
+          this.el.addEventListener('targetFound', () => {
+            console.log("Imagen encontrada");
+            video.play();
+          });
+          this.el.addEventListener('targetLost', () => {
+            video.pause();
+          });
+        }
       });
     </script>
+    
+    <style>
+      /* Estilo para que el botón de inicio sea grande y visible */
+      #start-btn {
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        z-index: 9999; padding: 20px; font-size: 20px; background: white; border-radius: 10px;
+      }
+    </style>
   </head>
 
   <body>
-    <!-- Usamos ./ para asegurar que busque en la misma carpeta -->
+    <!-- Botón necesario para que el navegador permita la cámara y el video -->
+    <button id="start-btn">HACER CLIC PARA INICIAR</button>
+
     <a-scene 
-      mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: yes; uiScanning: yes;" 
+      mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; uiLoading: yes; uiScanning: yes;" 
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false" 
       device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <video 
-          id="videoPareja" 
-          src="https://www.w3schools.com/html/mov_bbb.mp4" 
-          preload="auto" 
-          loop="true" 
-          crossorigin="anonymous" 
-          webkit-playsinline 
-          playsinline 
-          muted>
+        <video id="videoPareja" src="https://www.w3schools.com/html/mov_bbb.mp4" 
+               preload="auto" loop="true" crossorigin="anonymous" playsinline muted>
         </video>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0">
-        <a-video 
-          src="#videoPareja" 
-          width="1" 
-          height="0.6" 
-          position="0 0 0">
-        </a-video>
+      <a-entity mindar-image-target="targetIndex: 0" video-control>
+        <a-video src="#videoPareja" width="1" height="0.6" position="0 0 0"></a-video>
       </a-entity>
-      
     </a-scene>
+
+    <script>
+      const startBtn = document.querySelector("#start-btn");
+      const sceneEl = document.querySelector('a-scene');
+      
+      startBtn.addEventListener('click', () => {
+        // Al hacer clic, iniciamos la escena de AR manualmente
+        sceneEl.systems['mindar-image-system'].start();
+        startBtn.style.display = "none";
+      });
+    </script>
   </body>
 </html>
