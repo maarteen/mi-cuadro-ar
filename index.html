@@ -2,68 +2,22 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    
-    <!-- Librerías de A-Frame y MindAR -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
-    <style>
-      body { margin: 0; overflow: hidden; }
-      
-      /* Botón para activar el sonido */
-      #ar-ui-overlay {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 1000;
-        display: none; /* Se activa al detectar el cuadro */
-      }
-      
-      button {
-        padding: 15px 25px;
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        border: 2px solid #fff;
-        border-radius: 30px;
-        font-family: Arial, sans-serif;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
-      }
-    </style>
-
     <script>
-      // Lógica para reproducir el video y mostrar el botón de sonido
-      AFRAME.registerComponent('video-handler', {
-        init: function () {
-          const video = document.querySelector("#videoPareja");
-          const ui = document.querySelector("#ar-ui-overlay");
-          
-          this.el.addEventListener('targetFound', event => {
-            console.log("Cuadro detectado");
-            ui.style.display = "block";
-            video.play();
-          });
-
-          this.el.addEventListener('targetLost', event => {
-            console.log("Cuadro perdido");
-            ui.style.display = "none";
-            video.pause();
-          });
-        }
+      // Detectar si hay errores cargando el archivo .mind
+      window.addEventListener("load", () => {
+        const sceneEl = document.querySelector('a-scene');
+        sceneEl.addEventListener("arError", (event) => {
+          alert("Error de AR: " + event.detail.error);
+        });
       });
     </script>
   </head>
 
   <body>
-    <!-- Botón de sonido -->
-    <div id="ar-ui-overlay">
-      <button onclick="document.querySelector('#videoPareja').muted = false; this.style.display='none';">
-        🔊 ACTIVAR SONIDO
-      </button>
-    </div>
-
+    <!-- Usamos ./ para asegurar que busque en la misma carpeta -->
     <a-scene 
       mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: yes; uiScanning: yes;" 
       color-space="sRGB" 
@@ -72,30 +26,26 @@
       device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <!-- VIDEO ONLINE DE PRUEBA (Pareja caminando en el campo) -->
         <video 
-        id="videoPareja" 
-        src="https://www.w3schools.com/html/mov_bbb.mp4" 
-        preload="auto" 
-        loop="true" 
-        crossorigin="anonymous" 
-        webkit-playsinline 
-        playsinline 
-        muted>
-      </video>
+          id="videoPareja" 
+          src="https://www.w3schools.com/html/mov_bbb.mp4" 
+          preload="auto" 
+          loop="true" 
+          crossorigin="anonymous" 
+          webkit-playsinline 
+          playsinline 
+          muted>
+        </video>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- targetIndex: 0 (corresponde a tu archivo targets.mind) -->
-      <a-entity mindar-image-target="targetIndex: 0" video-handler>
-        <!-- Ajuste de tamaño para que encaje sobre la foto de la pareja -->
+      <a-entity mindar-image-target="targetIndex: 0">
         <a-video 
           src="#videoPareja" 
-          width="1.1" 
-          height="0.8" 
-          position="0 0 0" 
-          rotation="0 0 0">
+          width="1" 
+          height="0.6" 
+          position="0 0 0">
         </a-video>
       </a-entity>
       
