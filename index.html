@@ -84,7 +84,29 @@
     </style>
 
     <script>
-      // Lógica para reproducir el video y mostrar el botón de sonido
+      /* Componente que fuerza la actualización de la textura del video en cada frame.
+         Resuelve el bug de pantalla negra en móviles donde WebGL no refresca
+         automáticamente la textura de video. */
+      AFRAME.registerComponent('video-texture-update', {
+        init: function () {
+          this.videoEl = document.querySelector("#videoPareja");
+          this.textureReady = false;
+        },
+        tick: function () {
+          if (!this.textureReady) {
+            const mesh = this.el.getObject3D('mesh');
+            if (mesh && mesh.material && mesh.material.map) {
+              this.textureReady = true;
+            }
+            return;
+          }
+          const mesh = this.el.getObject3D('mesh');
+          if (mesh && mesh.material && mesh.material.map) {
+            mesh.material.map.needsUpdate = true;
+          }
+        }
+      });
+
       AFRAME.registerComponent('video-handler', {
         init: function () {
           const video = document.querySelector("#videoPareja");
@@ -93,7 +115,7 @@
           this.el.addEventListener('targetFound', () => {
             console.log("Cuadro detectado");
             ui.style.display = "block";
-            // Intentar reproducir video con promesa para evitar errores de bloqueo
+            video.currentTime = 0;
             video.play().catch(e => console.error("Error al reproducir video:", e));
           });
 
@@ -105,12 +127,11 @@
         }
       });
 
-      // Función para iniciar la escena AR después del clic
       function startAR() {
         const splash = document.getElementById('splash-screen');
         const video = document.getElementById('videoPareja');
         
-        // El truco definitivo: Reproducir y pausar inmediatamente en la interacción inicial
+        // Reproducir y pausar inmediatamente: desbloquea la reproducción para el contexto del navegador
         video.play().then(() => {
           video.pause();
           video.currentTime = 0;
@@ -118,11 +139,9 @@
           splash.style.opacity = '0';
           setTimeout(() => {
             splash.style.display = 'none';
-            // Iniciamos MindAR manualmente si autoStart fuera false (en este caso lo mantendremos para simplificar)
           }, 500);
         }).catch(err => {
           console.error("Fallo inicial en interacción:", err);
-          // Intentar ocultar de todas formas
           splash.style.display = 'none';
         });
       }
@@ -154,7 +173,6 @@
       device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <!-- Cambiado a video local para evitar problemas de CORS y carga lenta -->
         <video 
           id="videoPareja" 
           src="./video.mp4" 
@@ -170,13 +188,15 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0" video-handler>
-        <a-video 
-          src="#videoPareja" 
-          width="1" 
-          height="0.75" 
-          position="0 0 0" 
-          rotation="0 0 0">
-        </a-video>
+        <!-- Usar a-plane con material flat en vez de a-video para control total de la textura -->
+        <a-plane
+          material="shader: flat; src: #videoPareja; transparent: false;"
+          width="1"
+          height="0.75"
+          position="0 0 0"
+          rotation="0 0 0"
+          video-texture-update>
+        </a-plane>
       </a-entity>
       
     </a-scene>
