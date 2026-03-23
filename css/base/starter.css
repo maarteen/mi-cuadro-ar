@@ -1,0 +1,779 @@
+/* =========================================================
+   RESET
+========================================================= */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =========================================================
+   FORMS RESET
+========================================================= */
+
+/* Heredar tipografía de la página y limpiar lienzo */
+input,
+button,
+textarea,
+select,
+optgroup {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Evitar resize horizontal asimétrico que rompe layouts */
+textarea {
+  resize: vertical;
+  display: block; 
+}
+
+/* Eliminar tap highlights azules nativos horribles en móviles Android/iOS */
+button,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Remover apariencia y estilos nativos de Sistemas Operativos (iOS es famoso por esto) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+select,
+textarea {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none; /* Adiós borde focus nativo del navegador */
+  box-shadow: none;
+}
+
+/* Punteros prolijos */
+button,
+label,
+select,
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"]::file-selector-button {
+  cursor: pointer;
+}
+
+/* Limpieza de inputs numéricos (las flechitas antiestéticas) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield; /* Estándar */
+}
+
+/* Limpieza de la 'X' en buscadores de webkit */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/* ⚠️ SEGURIDAD DE ACCESIBILIDAD ⚠️
+   Como matamos el borde focus nativo general, necesitamos
+   dejar uno moderno por defecto previendo la navegación x Tabulación teclado */
+input:focus-visible,
+button:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   FLUID LAYOUT SYSTEM
+========================================================= */
+
+/* =========================================================
+   FLUID LAYOUT SYSTEM — FRAME + RHYTHM + FLOW
+   =========================================================
+   
+   A completely fluid architectural approach replacing static
+   breakpoints with clamped interpolation functions `clamp()`.
+
+   Ejes conceptuales:
+   - Eje X → frame (contención horizontal)
+   - Eje Y → rhythm (espaciado vertical)
+   - Flujo → content-flow / stack
+   - Distribución → grid
+========================================================= */
+
+/* =========================================================
+   RHYTHM SYSTEM — Vertical Layout Hierarchy (Fluid)
+========================================================= */
+
+:where([class^="rhythm--"], [class*=" rhythm--"]) {
+  position: relative;
+  overflow: hidden;
+  background: var(--section-bg, #ffffff);
+}
+
+/* 
+  Fluid spacing interpolates between mobile properties and desktop properties. 
+  clamp(MIN_MOBILE, GROWTH_VW, MAX_DESKTOP)
+*/
+.rhythm--sm   { padding-block: clamp(3.5rem, 4vw, 5rem); }
+.rhythm--md   { padding-block: clamp(4rem, 5vw, 6rem); }
+.rhythm--lg   { padding-block: clamp(5rem, 6vw, 7rem); }
+.rhythm--xl   { padding-block: clamp(6rem, 7vw, 8rem); }
+.rhythm--2xl  { padding-block: clamp(8rem, 8vw, 10rem); }
+
+/* =========================================================
+   FRAME SYSTEM — Horizontal Layout Container (Fluid)
+========================================================= */
+
+:where([class^="frame--"], [class*=" frame--"]) {
+  width: 100%;
+  margin-inline: auto;
+  /* Espaciado lateral fluido: The safety padding at the edges */
+  padding-inline: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.frame--sm  { max-width: 40rem; }   /* 640px  */
+.frame--md  { max-width: 56rem; }   /* 896px  */
+.frame--lg  { max-width: 72rem; }   /* 1152px */
+.frame--xl  { max-width: 80rem; }   /* 1280px */
+.frame--2xl { max-width: 90rem; }   /* 1440px */
+.frame--full { max-width: none; }
+
+/* =========================================================
+   MAX WIDTH UTILITIES
+========================================================= */
+
+:where([class*="maxw-"]) {
+  margin-inline: auto;
+}
+
+.maxw-full { max-width: 100%;  }
+.maxw-xs   { max-width: 32rem; }
+.maxw-sm   { max-width: 40rem; }
+.maxw-md   { max-width: 56rem; }
+.maxw-lg   { max-width: 72rem; }
+.maxw-xl   { max-width: 80rem; }
+
+@media (min-width: 768px) {
+  .md\:maxw-full { max-width: 100%;  }
+  .md\:maxw-sm   { max-width: 40rem; }
+  .md\:maxw-md   { max-width: 56rem; }
+  .md\:maxw-lg   { max-width: 72rem; }
+  .md\:maxw-xl   { max-width: 80rem; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:maxw-full { max-width: 100%;  }
+  .lg\:maxw-sm   { max-width: 40rem; }
+  .lg\:maxw-md   { max-width: 56rem; }
+  .lg\:maxw-lg   { max-width: 72rem; }
+  .lg\:maxw-xl   { max-width: 80rem; }
+}
+
+/* =========================================================
+   FLOW SYSTEM — Vertical Content Spacing
+========================================================= */
+
+:where([class^="flow--"], [class*=" flow--"]) > :not([class*="grid--"]) + * {
+  margin-top: var(--flow-space, 1.5rem);
+}
+
+.flow--xs  { --flow-space: clamp(0.25rem, 1vw, 0.75rem); }
+.flow--sm  { --flow-space: clamp(0.5rem, 2vw, 1rem); }
+.flow--md  { --flow-space: clamp(1rem, 3vw, 2rem); }
+.flow--lg  { --flow-space: clamp(2rem, 4vw, 3rem); }
+.flow--xl  { --flow-space: clamp(2.5rem, 6vw, 3.5rem); }
+.flow--2xl { --flow-space: clamp(3rem, 8vw, 4rem); }
+.flow--3xl { --flow-space: clamp(3.5rem, 10vw, 6rem); }
+
+.mt-hero { 
+  margin-top: clamp(4rem, 8vw, 7rem); 
+}
+
+/* =========================================================
+   STACK SYSTEM — Precision Vertical Spacing (Static)
+=========================================================
+   A diferencia de flow (fluido e inter-seccional), stack
+   utiliza medidas estáticas precisas para micro-layouts
+   como tarjetas, formularios o grupos de botones.
+========================================================= */
+
+:where([class^="stack--"], [class*=" stack--"]) > :not([class*="grid--"]) + * {
+  margin-top: var(--stack-space, 0.75rem);
+}
+
+.stack--none { --stack-space: 0; }
+.stack--xs   { --stack-space: 0.5rem; }
+.stack--sm   { --stack-space: 0.75rem; }
+.stack--md   { --stack-space: 1rem; }
+.stack--lg   { --stack-space: 1.5rem; }
+.stack--xl   { --stack-space: 2rem; }
+.stack--2xl  { --stack-space: 2.5rem; }
+
+
+/* =========================================================
+   RATIO
+========================================================= */
+
+.ratio {
+  aspect-ratio: var(--ratio-value, 16 / 9);
+  overflow: hidden;
+}
+
+.ratio > * {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ratio--square    { --ratio-value: 1 / 1; }
+.ratio--portrait  { --ratio-value: 3 / 4; }
+.ratio--landscape { --ratio-value: 16 / 9; }
+
+/* =========================================================
+   VIEWPORT HEIGHTS & BLEED
+========================================================= */
+
+.min-h-screen { min-height: 100dvh; }
+.h-screen     { height: 100dvh; }
+
+.bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
+/* =========================================================
+   GRID SYSTEM
+   =========================================================
+
+   Filosofía:
+   - Separar estructura, columnas y breakpoints
+   - Nada implícito
+   - Nada mágico
+   - HTML declarativo
+   - Escalable sin romper arquitectura
+
+   Cómo se usa:
+
+   <div class="cols-1 md:cols-3 gap-lg">
+   </div>
+
+   Esto significa:
+   - Es grid automáticamente (gracias a cols-*)
+   - 1 columna por defecto
+   - 3 columnas desde tablet
+   - Gap grande
+
+========================================================= */
+
+
+
+/* =========================================================
+   1️⃣ BASE GRID
+   ========================================================= */
+
+.grid,
+[class*="cols-"],
+[class*="auto-fit-"] {
+  display: grid;
+  gap: 1.5rem; /* Gap default razonable */
+}
+
+/* Variantes de gap */
+.gap-none { gap: 0; }
+.gap-xs   { gap: 0.75rem;  }
+.gap-sm   { gap: 1rem;  }
+.gap-md   { gap: 1.5rem;  }
+.gap-lg   { gap: 2rem;  }
+.gap-xl   { gap: 3rem; }
+.gap-2xl  { gap: 4rem; }
+.gap-3xl  { gap: 5rem; }
+.gap-4xl  { gap: 6rem; }
+.gap-5xl  { gap: 7rem; }
+.gap-6xl  { gap: 8rem; }
+.gap-7xl  { gap: 10rem; }
+.gap-8xl  { gap: 12rem; }
+.gap-9xl  { gap: 14rem; }
+.gap-10xl { gap: 16rem; }
+
+
+
+/* =========================================================
+   2️⃣ COLUMNAS BASE (Mobile First)
+   ========================================================= */
+
+.cols-1 { grid-template-columns: repeat(1, 1fr); }
+.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.cols-5 { grid-template-columns: repeat(5, 1fr); }
+.cols-6 { grid-template-columns: repeat(6, 1fr); }
+.cols-7 { grid-template-columns: repeat(7, 1fr); }
+.cols-8 { grid-template-columns: repeat(8, 1fr); }
+.cols-9 { grid-template-columns: repeat(9, 1fr); }
+.cols-10 { grid-template-columns: repeat(10, 1fr); }
+.cols-11 { grid-template-columns: repeat(11, 1fr); }
+.cols-12 { grid-template-columns: repeat(12, 1fr); }
+
+
+/* =========================================================
+   3️⃣ BREAKPOINT TABLET (≥768px)
+   ========================================================= */
+
+@media (min-width: 768px) {
+
+  .md\:cols-1 { grid-template-columns: repeat(1, 1fr); }
+  .md\:cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .md\:cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .md\:cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .md\:cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .md\:cols-6 { grid-template-columns: repeat(6, 1fr); }
+  .md\:cols-7 { grid-template-columns: repeat(7, 1fr); }
+  .md\:cols-8 { grid-template-columns: repeat(8, 1fr); }
+  .md\:cols-9 { grid-template-columns: repeat(9, 1fr); }
+  .md\:cols-10 { grid-template-columns: repeat(10, 1fr); }
+  .md\:cols-11 { grid-template-columns: repeat(11, 1fr); }
+  .md\:cols-12 { grid-template-columns: repeat(12, 1fr); }
+
+  .md\:gap-none  { gap: 0; }
+  .md\:gap-sm    { gap: 0.75rem;  }
+  .md\:gap-md    { gap: 1rem;  }
+  .md\:gap-lg    { gap: 1.5rem;  }
+  .md\:gap-xl    { gap: 2rem;  }
+  .md\:gap-2xl   { gap: 2.5rem; }
+  .md\:gap-3xl   { gap: 3rem; }
+  .md\:gap-4xl   { gap: 3.5rem; }
+  .md\:gap-5xl   { gap: 4rem; }
+  .md\:gap-6xl   { gap: 5rem; }
+  .md\:gap-7xl   { gap: 6rem; }
+  .md\:gap-8xl   { gap: 7rem; }
+  .md\:gap-9xl   { gap: 8rem; }
+  .md\:gap-10xl  { gap: 10rem; }
+}
+
+
+/* =========================================================
+   4️⃣ BREAKPOINT DESKTOP (≥1024px)
+   ========================================================= */
+
+@media (min-width: 1024px) {
+
+  .lg\:cols-1 { grid-template-columns: repeat(1, 1fr); }
+  .lg\:cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .lg\:cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .lg\:cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .lg\:cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .lg\:cols-6 { grid-template-columns: repeat(6, 1fr); }
+  .lg\:cols-7 { grid-template-columns: repeat(7, 1fr); }
+  .lg\:cols-8 { grid-template-columns: repeat(8, 1fr); }
+  .lg\:cols-9 { grid-template-columns: repeat(9, 1fr); }
+  .lg\:cols-10 { grid-template-columns: repeat(10, 1fr); }
+  .lg\:cols-11 { grid-template-columns: repeat(11, 1fr); }
+  .lg\:cols-12 { grid-template-columns: repeat(12, 1fr); }
+
+  .lg\:gap-none { gap: 0; }
+  .lg\:gap-sm   { gap: 0.75rem;  }
+  .lg\:gap-md   { gap: 1rem;  }
+  .lg\:gap-lg   { gap: 1.5rem;  }
+  .lg\:gap-xl   { gap: 2rem;  }
+  .lg\:gap-2xl  { gap: 2.5rem; }
+  .lg\:gap-3xl  { gap: 3rem; }
+  .lg\:gap-4xl  { gap: 3.5rem; }
+  .lg\:gap-5xl  { gap: 4rem; }
+  .lg\:gap-6xl  { gap: 5rem; }
+  .lg\:gap-7xl  { gap: 6rem; }  
+  .lg\:gap-8xl  { gap: 7rem; }  
+  .lg\:gap-9xl  { gap: 8rem; }    
+  .lg\:gap-10xl { gap: 10rem; }
+
+
+
+}
+
+
+/* =========================================================
+   5️⃣ AUTO-FIT (Layouts fluidos)
+   =========================================================
+   Útil para:
+   - Grillas de cards
+   - Logos
+   - Productos dinámicos
+
+   No usar para layout estructural principal.
+========================================================= */
+
+.auto-fit-xs { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.auto-fit-sm { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.auto-fit-md { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.auto-fit-lg { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+
+/* =========================================================
+   6️⃣ ALINEACIÓN Y DISTRIBUCIÓN
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   Alineación de items dentro de cada celda
+   (justify-items, align-items, place-items)
+   --------------------------------------------------------- */
+
+/* Eje X (horizontal dentro de la celda) */
+.gx-start   { justify-items: start; }
+.gx-center  { justify-items: center; }
+.gx-end     { justify-items: end; }
+.gx-stretch { justify-items: stretch; }
+
+/* Eje Y (vertical dentro de la celda) */
+.gy-start   { align-items: start; }
+.gy-center  { align-items: center; }
+.gy-end     { align-items: end; }
+.gy-stretch { align-items: stretch; }
+
+/* Ambos ejes (X + Y dentro de celda) */
+.gxy-start   { place-items: start; }
+.gxy-center  { place-items: center; }
+.gxy-end     { place-items: end; }
+.gxy-stretch { place-items: stretch; }
+
+/* ---------------------------------------------------------
+   Alineación del Grid completo
+   (justify-content, align-content)
+   --------------------------------------------------------- */
+
+/* Eje X completo */
+.gcx-start   { justify-content: start; }
+.gcx-center  { justify-content: center; }
+.gcx-end     { justify-content: end; }
+.gcx-between { justify-content: space-between; }
+
+/* Eje Y completo */
+.gcy-start   { align-content: start; }
+.gcy-center  { align-content: center; }
+.gcy-end     { align-content: end; }
+.gcy-between { align-content: space-between; }
+
+/* ---------------------------------------------------------
+   Alineación de un Hijo Individual
+   (justify-self, align-self)
+   --------------------------------------------------------- */
+
+/* Item en eje X */
+.gi-x-start  { justify-self: start; }
+.gi-x-center { justify-self: center; }
+.gi-x-end    { justify-self: end; }
+.gi-x-stretch{ justify-self: stretch; }
+
+/* Item en eje Y */
+.gi-y-start  { align-self: start; }
+.gi-y-center { align-self: center; }
+.gi-y-end    { align-self: end; }
+.gi-y-stretch{ align-self: stretch; }
+
+/* ---------------------------------------------------------
+   Responsive Grid Alignment
+   --------------------------------------------------------- */
+@media (min-width: 768px) {
+  .md\:gxy-center { place-items: center; }
+  .md\:gx-center  { justify-items: center; }
+  .md\:gcx-center { justify-content: center; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:gxy-center { place-items: center; }
+  .lg\:gcx-center { justify-content: center; }
+}
+
+
+/* =========================================================
+   7️⃣ SPAN UTILITIES
+   =========================================================
+   Permite que un item ocupe más columnas
+========================================================= */
+
+.col-span-1 { grid-column: span 1; }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.col-span-5 { grid-column: span 5; }
+.col-span-6 { grid-column: span 6; }
+.col-span-7 { grid-column: span 7; }
+.col-span-8 { grid-column: span 8; }
+.col-span-9 { grid-column: span 9; }
+.col-span-10 { grid-column: span 10; }
+.col-span-11 { grid-column: span 11; }
+.col-span-12 { grid-column: span 12; }
+.col-span-full { grid-column: 1 / -1; }
+
+.col-start-1 { grid-column-start: 1; }
+.col-start-2 { grid-column-start: 2; }
+.col-start-3 { grid-column-start: 3; }
+.col-start-4 { grid-column-start: 4; }
+.col-start-5 { grid-column-start: 5; }
+.col-start-6 { grid-column-start: 6; }
+.col-start-7 { grid-column-start: 7; }
+.col-start-8 { grid-column-start: 8; }
+.col-start-9 { grid-column-start: 9; }
+.col-start-10 { grid-column-start: 10; }
+.col-start-11 { grid-column-start: 11; }
+.col-start-12 { grid-column-start: 12; }
+.col-start-13 { grid-column-start: 13; }
+
+@media (min-width: 768px) {
+  .md\:col-span-1 { grid-column: span 1; }
+  .md\:col-span-2 { grid-column: span 2; }
+  .md\:col-span-3 { grid-column: span 3; }
+  .md\:col-span-4 { grid-column: span 4; }
+  .md\:col-span-5 { grid-column: span 5; }
+  .md\:col-span-6 { grid-column: span 6; }
+  .md\:col-span-7 { grid-column: span 7; }
+  .md\:col-span-8 { grid-column: span 8; }
+  .md\:col-span-9 { grid-column: span 9; }
+  .md\:col-span-10 { grid-column: span 10; }
+  .md\:col-span-11 { grid-column: span 11; }
+  .md\:col-span-12 { grid-column: span 12; }
+  .md\:col-span-full { grid-column: 1 / -1; }
+
+  .md\:col-start-1 { grid-column-start: 1; }
+  .md\:col-start-2 { grid-column-start: 2; }
+  .md\:col-start-3 { grid-column-start: 3; }
+  .md\:col-start-4 { grid-column-start: 4; }
+  .md\:col-start-5 { grid-column-start: 5; }
+  .md\:col-start-6 { grid-column-start: 6; }
+  .md\:col-start-7 { grid-column-start: 7; }
+  .md\:col-start-8 { grid-column-start: 8; }
+  .md\:col-start-9 { grid-column-start: 9; }
+  .md\:col-start-10 { grid-column-start: 10; }
+  .md\:col-start-11 { grid-column-start: 11; }
+  .md\:col-start-12 { grid-column-start: 12; }
+  .md\:col-start-13 { grid-column-start: 13; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:col-span-1 { grid-column: span 1; }
+  .lg\:col-span-2 { grid-column: span 2; }
+  .lg\:col-span-3 { grid-column: span 3; }
+  .lg\:col-span-4 { grid-column: span 4; }
+  .lg\:col-span-5 { grid-column: span 5; }
+  .lg\:col-span-6 { grid-column: span 6; }
+  .lg\:col-span-7 { grid-column: span 7; }
+  .lg\:col-span-8 { grid-column: span 8; }
+  .lg\:col-span-9 { grid-column: span 9; }
+  .lg\:col-span-10 { grid-column: span 10; }
+  .lg\:col-span-11 { grid-column: span 11; }
+  .lg\:col-span-12 { grid-column: span 12; }
+  .lg\:col-span-full { grid-column: 1 / -1; }
+
+  .lg\:col-start-1 { grid-column-start: 1; }
+  .lg\:col-start-2 { grid-column-start: 2; }
+  .lg\:col-start-3 { grid-column-start: 3; }
+  .lg\:col-start-4 { grid-column-start: 4; }
+  .lg\:col-start-5 { grid-column-start: 5; }
+  .lg\:col-start-6 { grid-column-start: 6; }
+  .lg\:col-start-7 { grid-column-start: 7; }
+  .lg\:col-start-8 { grid-column-start: 8; }
+  .lg\:col-start-9 { grid-column-start: 9; }
+  .lg\:col-start-10 { grid-column-start: 10; }
+  .lg\:col-start-11 { grid-column-start: 11; }
+  .lg\:col-start-12 { grid-column-start: 12; }
+  .lg\:col-start-13 { grid-column-start: 13; }
+}
+
+/* =========================================================
+   8️⃣ AUTO FLOW Y DENSE
+   =========================================================
+   Define cómo se ubican los elementos en celdas vacías
+========================================================= */
+
+.grid-flow-row   { grid-auto-flow: row; }
+.grid-flow-col   { grid-auto-flow: column; }
+.grid-flow-dense { grid-auto-flow: dense; }
+
+
+/* =========================================================
+   FLEX UTILITIES
+   =========================================================
+   Para contenedores flex.
+========================================================= */
+
+/* Aplica `display: flex` automáticamente si usas direcciones o el centrado total */
+.flex,
+[class*="f-row"],
+[class*="f-col"],
+[class*="fx-center"],
+[class*="fy-center"],
+[class*="fxy-center"] { 
+  display: flex; 
+}
+
+.inline-flex,
+.f-inline { 
+  display: inline-flex; 
+}
+
+
+/* =========================================================
+   DIRECCIÓN (define eje principal)
+========================================================= */
+
+/* Horizontal (eje principal = X) */
+.f-row { flex-direction: row; }
+
+/* Vertical (eje principal = Y) */
+.f-col { flex-direction: column; }
+
+/* Invertidos */
+.f-row-r { flex-direction: row-reverse; }
+.f-col-r { flex-direction: column-reverse; }
+
+/* =========================================================
+   WRAP
+========================================================= */
+
+.f-wrap   { flex-wrap: wrap; }
+.f-nowrap { flex-wrap: nowrap; }
+
+/* =========================================================
+   ALINEACIÓN EN EJE X (horizontal real)
+   OJO: en flex esto usa justify-content
+========================================================= */
+
+.fx-start   { justify-content: flex-start; }
+.fx-center  { justify-content: center; }
+.fx-end     { justify-content: flex-end; }
+.fx-between { justify-content: space-between; }
+.fx-around  { justify-content: space-around; }
+.fx-evenly  { justify-content: space-evenly; }
+
+/* =========================================================
+   ALINEACIÓN EN EJE Y (vertical real)
+   Usa align-items
+========================================================= */
+
+.fy-start    { align-items: flex-start; }
+.fy-center   { align-items: center; }
+.fy-end      { align-items: flex-end; }
+.fy-stretch  { align-items: stretch; }
+.fy-baseline { align-items: baseline; }
+
+/* =========================================================
+   CENTRADO EN AMBOS EJES
+========================================================= */
+
+.fxy-center {
+  justify-content: center;
+  align-items: center;
+}
+
+/* =========================================================
+   FLEX ITEM (HIJO INDIVIDUAL)
+   Solo afecta a ese elemento
+========================================================= */
+
+.fi-start   { align-self: flex-start; }
+.fi-center  { align-self: center; }
+.fi-end     { align-self: flex-end; }
+.fi-stretch { align-self: stretch; }
+
+/* =========================================================
+   RESPONSIVE FLEX SHORTHAND
+========================================================= */
+
+@media (min-width: 768px) {
+
+  .md\:f-row { flex-direction: row; }
+  .md\:f-col { flex-direction: column; }
+
+  .md\:fx-center  { justify-content: center; }
+  .md\:fx-between { justify-content: space-between; }
+
+  .md\:fy-center { align-items: center; }
+}
+
+@media (min-width: 1024px) {
+
+  .lg\:f-row { flex-direction: row; }
+  .lg\:f-col { flex-direction: column; }
+
+  .lg\:fx-center { justify-content: center; }
+  .lg\:fy-center { align-items: center; }
+}
+
+/* =========================================================
+   FLEX ITEM INDIVIDUAL (Comportamiento de crecimiento)
+========================================================= */
+
+.f-1       { flex: 1 1 0%; }
+.f-auto    { flex: 1 1 auto; }
+.f-initial { flex: 0 1 auto; }
+.f-none    { flex: none; }
+
+.f-grow     { flex-grow: 1; }
+.f-shrink-0 { flex-shrink: 0; }
+
+@media (min-width: 768px) {
+  .md\:f-1       { flex: 1 1 0%; }
+  .md\:f-auto    { flex: 1 1 auto; }
+  .md\:f-grow    { flex-grow: 1; }
+  .md\:f-shrink-0 { flex-shrink: 0; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:f-1       { flex: 1 1 0%; }
+  .lg\:f-auto    { flex: 1 1 auto; }
+  .lg\:f-grow    { flex-grow: 1; }
+  .lg\:f-shrink-0 { flex-shrink: 0; }
+}
+
+/* =========================================================
+   TEXT SIZE UTILITIES — Fluid Scale with clamp()
+   =========================================================
+   Usage: <p class="text-lg">...</p>
+   Each step is proportional, fluid between mobile and desktop.
+========================================================= */
+
+.text-2xs  { font-size: clamp(0.625rem, 0.4vw + 0.35rem, 0.75rem);  }
+.text-xs   { font-size: clamp(0.7rem,   0.5vw + 0.4rem,  0.8rem);   }
+.text-sm   { font-size: clamp(0.8rem,   0.6vw + 0.45rem, 0.95rem);  }
+.text-base { font-size: clamp(0.9rem,   0.8vw + 0.5rem,  1.1rem);   }
+.text-md   { font-size: clamp(1rem,     1vw + 0.5rem,    1.2rem);   }
+.text-lg   { font-size: clamp(1.125rem, 1.2vw + 0.5rem,  1.4rem);   }
+.text-xl   { font-size: clamp(1.25rem,  1.5vw + 0.5rem,  1.65rem);  }
+.text-2xl  { font-size: clamp(1.5rem,   2vw + 0.5rem,    2.25rem);  }
+.text-3xl  { font-size: clamp(2rem,     3vw + 0.5rem,    2.75rem);  }
+.text-4xl  { font-size: clamp(2.5rem,   4vw + 0.5rem,    3.5rem);   }
