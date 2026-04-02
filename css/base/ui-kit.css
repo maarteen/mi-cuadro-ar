@@ -2,3 +2,80 @@
    UI-KIT — Componentes reutilizables
    ========================================================= */
 
+/* ---------------------------------------------------------
+   Botón Primario
+   --------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 0.5vw + 0.6rem, 1.05rem);
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  box-shadow: 0 4px 20px rgba(124, 107, 245, 0.35);
+}
+
+.btn--primary:hover {
+  box-shadow: 0 8px 30px rgba(124, 107, 245, 0.5);
+}
+
+.btn--outline {
+  background: transparent;
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn--outline:hover {
+  border-color: var(--primary-light);
+  box-shadow: 0 4px 15px rgba(124, 107, 245, 0.2);
+}
+
+.btn--lg {
+  padding: 1.15rem 2.5rem;
+  font-size: clamp(1rem, 0.5vw + 0.7rem, 1.15rem);
+}
+
+/* ---------------------------------------------------------
+   Separador decorativo
+   --------------------------------------------------------- */
+.divider {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border: none;
+  border-radius: 2px;
+}
+
+/* ---------------------------------------------------------
+   Texto centrado (helper)
+   --------------------------------------------------------- */
+.text-center { text-align: center; }
+.text-left   { text-align: left; }
+
+/* ---------------------------------------------------------
+   Visibilidad responsive
+   --------------------------------------------------------- */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: block;
+  }
+}

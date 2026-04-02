@@ -1,197 +1,134 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Cuadro Mágico AR</title>
-    
-    <!-- Librerías de A-Frame y MindAR -->
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
-
-    <style>
-      body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-      
-      /* Pantalla de Inicio (Splash Screen) */
-      #splash-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(circle, #1e1e2f 0%, #0a0a0c 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        color: white;
-        text-align: center;
-        transition: opacity 0.5s ease-out;
-      }
-
-      .splash-content {
-        padding: 30px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      }
-
-      h1 { margin-bottom: 10px; font-size: 24px; color: #fff; }
-      p { margin-bottom: 30px; color: #ccc; font-size: 16px; }
-
-      .btn-start {
-        padding: 16px 40px;
-        font-size: 18px;
-        font-weight: bold;
-        background: linear-gradient(135deg, #6e8efb, #a777e3);
-        color: white;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
-      }
-
-      .btn-start:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 20px rgba(110, 142, 251, 0.6);
-      }
-
-      /* Botón para activar el sonido */
-      #ar-ui-overlay {
-        position: fixed;
-        bottom: 40px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        display: none;
-      }
-      
-      .btn-sound {
-        padding: 12px 25px;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 30px;
-        font-weight: bold;
-        cursor: pointer;
-        backdrop-filter: blur(5px);
-        box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
-      }
-    </style>
-
-    <script>
-      /* Componente crítico para evitar el cuadro negro en móviles */
-      AFRAME.registerComponent('video-texture-update', {
-        init: function () {
-          this.textureReady = false;
-        },
-        tick: function () {
-          if (!this.textureReady) {
-            const mesh = this.el.getObject3D('mesh');
-            if (mesh && mesh.material && mesh.material.map) {
-              this.textureReady = true;
-            }
-            return;
-          }
-          const mesh = this.el.getObject3D('mesh');
-          if (mesh && mesh.material && mesh.material.map) {
-            mesh.material.map.needsUpdate = true;
-          }
-        }
-      });
-
-      AFRAME.registerComponent('video-handler', {
-        init: function () {
-          const video = document.querySelector("#videoPareja");
-          const ui = document.querySelector("#ar-ui-overlay");
-          
-          this.el.addEventListener('targetFound', () => {
-            console.log("Cuadro detectado");
-            ui.style.display = "block";
-            video.play().catch(e => console.error("Error al reproducir video:", e));
-          });
-
-          this.el.addEventListener('targetLost', () => {
-            console.log("Cuadro perdido");
-            ui.style.display = "none";
-            video.pause();
-          });
-        }
-      });
-
-      function startAR() {
-        const splash = document.getElementById('splash-screen');
-        const video = document.getElementById('videoPareja');
-        
-        // El truco para "desbloquear" el video en móviles
-        video.play().then(() => {
-          video.pause();
-          video.currentTime = 0;
-          
-          splash.style.opacity = '0';
-          setTimeout(() => {
-            splash.style.display = 'none';
-          }, 500);
-        }).catch(err => {
-          console.error("Fallo inicial en interacción:", err);
-          splash.style.display = 'none';
-        });
-      }
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cuadro Mágico — Tus fotos cobran vida con Realidad Aumentada</title>
+    <meta name="description" content="Transformamos tus fotos favoritas en experiencias de Realidad Aumentada. Apuntá tu celular al cuadro y mirá cómo cobra vida con video y sonido.">
+    <link rel="stylesheet" href="./css/main.css">
   </head>
 
   <body>
-    <div id="splash-screen">
-      <div class="splash-content">
-        <h1>Cuadro Mágico AR</h1>
-        <p>Prepara la cámara para ver la magia.</p>
-        <button class="btn-start" onclick="startAR()">¡COMENZAR!</button>
+
+    <!-- =====================================================
+         HERO
+         ===================================================== -->
+    <section id="hero" class="rhythm--xl">
+      <div class="frame--lg flow--md">
+
+        <div class="cols-1 md:cols-2 gap-xl gy-center">
+
+          <div class="stack--lg">
+            <span class="hero-badge">✨ Realidad Aumentada</span>
+            <h1>Tus fotos <span class="accent">cobran vida</span></h1>
+            <p>Transformamos tus fotos y cuadros en experiencias interactivas. Apuntá tu celular y mirá cómo se reproduce un video mágico con sonido sobre la imagen.</p>
+            <div class="f-row f-wrap gap-sm">
+              <a href="#como-funciona" class="btn btn--primary btn--lg">Descubrí cómo</a>
+              <a href="#cta-final" class="btn btn--outline btn--lg">Pedí el tuyo</a>
+            </div>
+          </div>
+
+          <div class="hero-img-wrapper">
+            <img src="./img/hero-ar-demo.png" alt="Demo de Cuadro Mágico AR: un celular escaneando un cuadro y reproduciendo video en realidad aumentada" loading="eager">
+          </div>
+
+        </div>
+
       </div>
-    </div>
+    </section>
 
-    <div id="ar-ui-overlay">
-      <button class="btn-sound" onclick="document.querySelector('#videoPareja').muted = false; this.style.display='none';">
-        🔊 ACTIVAR SONIDO
-      </button>
-    </div>
+    <!-- =====================================================
+         CÓMO FUNCIONA
+         ===================================================== -->
+    <section id="como-funciona" class="rhythm--lg">
+      <div class="frame--lg flow--lg">
 
-    <a-scene 
-      mindar-image="imageTargetSrc: ./img/targets.mind; autoStart: true; uiLoading: yes; uiScanning: yes; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 60;" 
-      color-space="sRGB" 
-      renderer="colorManagement: true, physicallyCorrectLights" 
-      vr-mode-ui="enabled: false" 
-      device-orientation-permission-ui="enabled: false">
-      
-      <a-assets>
-        <video 
-          id="videoPareja" 
-          src="./img/video.mp4" 
-          preload="auto" 
-          loop="true" 
-          crossorigin="anonymous" 
-          webkit-playsinline 
-          playsinline 
-          muted>
-        </video>
-      </a-assets>
+        <div class="stack--sm text-center maxw-md">
+          <span class="section-label">Cómo funciona</span>
+          <h2>3 pasos para la magia</h2>
+          <hr class="divider" style="margin-inline: auto;">
+          <p>No necesitás instalar ninguna app. Solo tu celular y la cámara.</p>
+        </div>
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <div class="cols-1 md:cols-3 gap-lg">
 
-      <a-entity mindar-image-target="targetIndex: 0" video-handler>
-        <a-plane
-          material="shader: flat; src: #videoPareja; transparent: false;"
-          width="1"
-          height="0.75"
-          position="0 0 0"
-          rotation="0 0 0"
-          video-texture-update>
-        </a-plane>
-      </a-entity>
-      
-    </a-scene>
+          <div class="step-card stack--md">
+            <span class="step-number">1</span>
+            <h3>Elegí tu foto</h3>
+            <p>Elegí la imagen que querés transformar. Puede ser una foto personal, una obra de arte o cualquier imagen que ames.</p>
+          </div>
+
+          <div class="step-card stack--md">
+            <span class="step-number">2</span>
+            <h3>Escaneá el cuadro</h3>
+            <p>Abrí la cámara desde el enlace QR que viene con tu cuadro. Apuntá al cuadro y esperá la detección.</p>
+          </div>
+
+          <div class="step-card stack--md">
+            <span class="step-number">3</span>
+            <h3>Viví la experiencia</h3>
+            <p>El video se reproduce sobre la imagen en tiempo real, con sonido. Magia en tus manos, sin descargar nada.</p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =====================================================
+         QUÉ INCLUYE
+         ===================================================== -->
+    <section id="experiencia" class="rhythm--lg">
+      <div class="frame--lg flow--lg">
+
+        <div class="cols-1 md:cols-2 gap-xl gy-center">
+
+          <div class="stack--md">
+            <h2>Más que un cuadro, una experiencia</h2>
+            <p>Cada Cuadro Mágico viene preparado para que lo único que necesites sea tu celular. Sin apps, sin complicaciones.</p>
+
+            <div class="f-row f-wrap gap-xs" style="margin-top: 1.5rem;">
+              <span class="feature-pill"><span class="pill-icon">📸</span> Foto impresa premium</span>
+              <span class="feature-pill"><span class="pill-icon">🎥</span> Video AR personalizado</span>
+              <span class="feature-pill"><span class="pill-icon">📱</span> QR de acceso directo</span>
+              <span class="feature-pill"><span class="pill-icon">🔊</span> Sonido integrado</span>
+              <span class="feature-pill"><span class="pill-icon">🚫</span> Sin app necesaria</span>
+              <span class="feature-pill"><span class="pill-icon">🎁</span> Ideal para regalo</span>
+            </div>
+          </div>
+
+          <div class="hero-img-wrapper">
+            <img src="./img/steps-icons.png" alt="Características del Cuadro Mágico: foto premium, video AR, QR y sonido" loading="lazy">
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =====================================================
+         CTA FINAL
+         ===================================================== -->
+    <section id="cta-final" class="rhythm--xl">
+      <div class="frame--md flow--md" style="position: relative; z-index: 1;">
+        <div class="stack--lg text-center maxw-md">
+          <h2>¿Listo para crear <span class="accent">tu Cuadro Mágico</span>?</h2>
+          <p>Contanos tu idea y te armamos una experiencia AR única. Ideal para regalos, recordatorios y momentos especiales.</p>
+          <div>
+            <a href="https://wa.me/" class="btn btn--primary btn--lg">💬 Escribinos por WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+    <footer>
+      <div class="frame--lg">
+        <p>Cuadro Mágico © 2026 — Experiencias AR a partir de tus fotos.</p>
+      </div>
+    </footer>
+
   </body>
 </html>

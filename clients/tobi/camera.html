@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Cuadro Mágico — Tobi</title>
+    
+    <!-- Librerías de A-Frame y MindAR -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      
+      /* Pantalla de Inicio (Splash Screen) */
+      #splash-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, #1e1e2f 0%, #0a0a0c 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        color: white;
+        text-align: center;
+        transition: opacity 0.5s ease-out;
+      }
+
+      .splash-content {
+        padding: 30px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      }
+
+      h1 { margin-bottom: 10px; font-size: 24px; color: #fff; }
+      p { margin-bottom: 30px; color: #ccc; font-size: 16px; }
+
+      .btn-start {
+        padding: 16px 40px;
+        font-size: 18px;
+        font-weight: bold;
+        background: linear-gradient(135deg, #6e8efb, #a777e3);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
+      }
+
+      .btn-start:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(110, 142, 251, 0.6);
+      }
+
+      /* Botón para activar el sonido */
+      #ar-ui-overlay {
+        position: fixed;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: none;
+      }
+      
+      .btn-sound {
+        padding: 12px 25px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 30px;
+        font-weight: bold;
+        cursor: pointer;
+        backdrop-filter: blur(5px);
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+      }
+    </style>
+
+    <script>
+      /* ============================================================
+         CONFIGURACIÓN DEL CLIENTE
+         Editá estos valores para personalizar la experiencia AR.
+         - name: Nombre que aparece en la splash screen
+         - mindFile: Ruta relativa al archivo .mind (image target)
+         - videoFile: Ruta relativa al video que se reproduce en AR
+         - videoWidth: Ancho del plano AR (base = 1)
+         - videoHeight: Alto del plano AR (controla el aspect ratio)
+             Ejemplos: 0.75 = 4:3 landscape, 1.33 = 3:4 portrait,
+                        0.5625 = 16:9, 1.78 = 9:16
+         ============================================================ */
+      const CLIENT_CONFIG = {
+        name: "Tobi",
+        mindFile: "./tobi.mind",
+        videoFile: "./tobi.mp4",
+        videoWidth: 1,
+        videoHeight: 1.33,
+      };
+
+      /* Componente crítico para evitar el cuadro negro en móviles */
+      AFRAME.registerComponent('video-texture-update', {
+        init: function () {
+          this.textureReady = false;
+        },
+        tick: function () {
+          if (!this.textureReady) {
+            const mesh = this.el.getObject3D('mesh');
+            if (mesh && mesh.material && mesh.material.map) {
+              this.textureReady = true;
+            }
+            return;
+          }
+          const mesh = this.el.getObject3D('mesh');
+          if (mesh && mesh.material && mesh.material.map) {
+            mesh.material.map.needsUpdate = true;
+          }
+        }
+      });
+
+      AFRAME.registerComponent('video-handler', {
+        init: function () {
+          const video = document.querySelector("#clientVideo");
+          const ui = document.querySelector("#ar-ui-overlay");
+          
+          this.el.addEventListener('targetFound', () => {
+            console.log("Cuadro detectado");
+            ui.style.display = "block";
+            video.play().catch(e => console.error("Error al reproducir video:", e));
+          });
+
+          this.el.addEventListener('targetLost', () => {
+            console.log("Cuadro perdido");
+            ui.style.display = "none";
+            video.pause();
+          });
+        }
+      });
+
+      function startAR() {
+        const splash = document.getElementById('splash-screen');
+        const video = document.getElementById('clientVideo');
+        
+        // Desbloquear video en móviles con interacción del usuario
+        video.play().then(() => {
+          video.pause();
+          video.currentTime = 0;
+          
+          splash.style.opacity = '0';
+          setTimeout(() => {
+            splash.style.display = 'none';
+          }, 500);
+        }).catch(err => {
+          console.error("Fallo inicial en interacción:", err);
+          splash.style.display = 'none';
+        });
+      }
+
+      /* Inyectar la escena AR dinámicamente con los datos del cliente */
+      document.addEventListener('DOMContentLoaded', () => {
+        const { name, mindFile, videoFile, videoWidth, videoHeight } = CLIENT_CONFIG;
+
+        // Personalizar splash
+        document.getElementById('client-name').textContent = name;
+        document.title = `Cuadro Mágico — ${name}`;
+
+        // Construir la escena A-Frame
+        const sceneHTML = `
+          <a-scene 
+            mindar-image="imageTargetSrc: ${mindFile}; autoStart: true; uiLoading: yes; uiScanning: yes; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 60;" 
+            color-space="sRGB" 
+            renderer="colorManagement: true, physicallyCorrectLights" 
+            vr-mode-ui="enabled: false" 
+            device-orientation-permission-ui="enabled: false">
+            
+            <a-assets>
+              <video 
+                id="clientVideo" 
+                src="${videoFile}" 
+                preload="auto" 
+                loop="true" 
+                crossorigin="anonymous" 
+                webkit-playsinline 
+                playsinline 
+                muted>
+              </video>
+            </a-assets>
+
+            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+            <a-entity mindar-image-target="targetIndex: 0" video-handler>
+              <a-plane
+                material="shader: flat; src: #clientVideo; transparent: false;"
+                width="${videoWidth}"
+                height="${videoHeight}"
+                position="0 0 0"
+                rotation="0 0 0"
+                video-texture-update>
+              </a-plane>
+            </a-entity>
+            
+          </a-scene>
+        `;
+
+        document.getElementById('ar-container').innerHTML = sceneHTML;
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="splash-screen">
+      <div class="splash-content">
+        <h1>Cuadro Mágico AR</h1>
+        <p>Experiencia de <strong id="client-name">Tobi</strong></p>
+        <button class="btn-start" onclick="startAR()">¡COMENZAR!</button>
+      </div>
+    </div>
+
+    <div id="ar-ui-overlay">
+      <button class="btn-sound" onclick="document.querySelector('#clientVideo').muted = false; this.style.display='none';">
+        🔊 ACTIVAR SONIDO
+      </button>
+    </div>
+
+    <div id="ar-container">
+      <!-- La escena AR se inyecta dinámicamente desde CLIENT_CONFIG -->
+    </div>
+  </body>
+</html>
