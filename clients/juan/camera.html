@@ -84,25 +84,6 @@
     </style>
 
     <script>
-      /* ============================================================
-         CONFIGURACIÓN DEL CLIENTE
-         Editá estos valores para personalizar la experiencia AR.
-         - name: Nombre que aparece en la splash screen
-         - mindFile: Ruta relativa al archivo .mind (image target)
-         - videoFile: Ruta relativa al video que se reproduce en AR
-         - videoWidth: Ancho del plano AR (base = 1)
-         - videoHeight: Alto del plano AR (controla el aspect ratio)
-             Ejemplos: 0.75 = 4:3 landscape, 1.33 = 3:4 portrait,
-                        0.5625 = 16:9, 1.78 = 9:16
-         ============================================================ */
-      const CLIENT_CONFIG = {
-        name: "Juan",
-        mindFile: "./juan.mind",
-        videoFile: "./juan.mp4",
-        videoWidth: 1,
-        videoHeight: 0.75,
-      };
-
       /* Componente crítico para evitar el cuadro negro en móviles */
       AFRAME.registerComponent('video-texture-update', {
         init: function () {
@@ -131,13 +112,14 @@
           this.el.addEventListener('targetFound', () => {
             console.log("Cuadro detectado");
             ui.style.display = "block";
-            video.play().catch(e => console.error("Error al reproducir video:", e));
+            // Previene errores en safari al intentar play() sin evento explícito antes
+            if(video) video.play().catch(e => console.error("Error al reproducir video:", e));
           });
 
           this.el.addEventListener('targetLost', () => {
             console.log("Cuadro perdido");
             ui.style.display = "none";
-            video.pause();
+            if(video) video.pause();
           });
         }
       });
@@ -146,77 +128,33 @@
         const splash = document.getElementById('splash-screen');
         const video = document.getElementById('clientVideo');
         
-        // Desbloquear video en móviles con interacción del usuario
-        video.play().then(() => {
-          video.pause();
-          video.currentTime = 0;
-          
-          splash.style.opacity = '0';
-          setTimeout(() => {
+        // Desbloquear autoplay de video en navegadores móviles (hack estándar)
+        if (video) {
+          video.play().then(() => {
+            video.pause();
+            video.currentTime = 0;
+            
+            splash.style.opacity = '0';
+            setTimeout(() => {
+              splash.style.display = 'none';
+            }, 500);
+          }).catch(err => {
+            console.error("Fallo inicial en interacción:", err);
             splash.style.display = 'none';
-          }, 500);
-        }).catch(err => {
-          console.error("Fallo inicial en interacción:", err);
-          splash.style.display = 'none';
-        });
+          });
+        } else {
+            splash.style.display = 'none';
+        }
       }
-
-      /* Inyectar la escena AR dinámicamente con los datos del cliente */
-      document.addEventListener('DOMContentLoaded', () => {
-        const { name, mindFile, videoFile, videoWidth, videoHeight } = CLIENT_CONFIG;
-
-        // Personalizar splash
-        document.getElementById('client-name').textContent = name;
-        document.title = `Cuadro Mágico — ${name}`;
-
-        // Construir la escena A-Frame
-        const sceneHTML = `
-          <a-scene 
-            mindar-image="imageTargetSrc: ${mindFile}; autoStart: true; uiLoading: yes; uiScanning: yes; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 60;" 
-            color-space="sRGB" 
-            renderer="colorManagement: true, physicallyCorrectLights" 
-            vr-mode-ui="enabled: false" 
-            device-orientation-permission-ui="enabled: false">
-            
-            <a-assets>
-              <video 
-                id="clientVideo" 
-                src="${videoFile}" 
-                preload="auto" 
-                loop="true" 
-                crossorigin="anonymous" 
-                webkit-playsinline 
-                playsinline 
-                muted>
-              </video>
-            </a-assets>
-
-            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-            <a-entity mindar-image-target="targetIndex: 0" video-handler>
-              <a-plane
-                material="shader: flat; src: #clientVideo; transparent: false;"
-                width="${videoWidth}"
-                height="${videoHeight}"
-                position="0 0 0"
-                rotation="0 0 0"
-                video-texture-update>
-              </a-plane>
-            </a-entity>
-            
-          </a-scene>
-        `;
-
-        document.getElementById('ar-container').innerHTML = sceneHTML;
-      });
     </script>
   </head>
 
   <body>
+    <!-- INTERFAZ -->
     <div id="splash-screen">
       <div class="splash-content">
         <h1>Cuadro Mágico AR</h1>
-        <p>Experiencia de <strong id="client-name">Juan</strong></p>
+        <p>Experiencia de <strong>Juan</strong></p>
         <button class="btn-start" onclick="startAR()">¡COMENZAR!</button>
       </div>
     </div>
@@ -227,8 +165,40 @@
       </button>
     </div>
 
-    <div id="ar-container">
-      <!-- La escena AR se inyecta dinámicamente desde CLIENT_CONFIG -->
-    </div>
+    <!-- ESCENA A-FRAME ESTATICA EN EL BODY PARA EVITAR BUGS DE TAMAÑO/CAMARA -->
+    <a-scene 
+      mindar-image="imageTargetSrc: ./juan.mind; autoStart: true; uiLoading: yes; uiScanning: yes; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 60;" 
+      color-space="sRGB" 
+      renderer="colorManagement: true, physicallyCorrectLights" 
+      vr-mode-ui="enabled: false" 
+      device-orientation-permission-ui="enabled: false">
+      
+      <a-assets>
+        <video 
+          id="clientVideo" 
+          src="./juan.mp4" 
+          preload="auto" 
+          loop="true" 
+          crossorigin="anonymous" 
+          webkit-playsinline 
+          playsinline 
+          muted>
+        </video>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <a-entity mindar-image-target="targetIndex: 0" video-handler>
+        <a-plane
+          material="shader: flat; src: #clientVideo; transparent: false;"
+          width="1"
+          height="0.75"
+          position="0 0 0"
+          rotation="0 0 0"
+          video-texture-update>
+        </a-plane>
+      </a-entity>
+      
+    </a-scene>
   </body>
 </html>
