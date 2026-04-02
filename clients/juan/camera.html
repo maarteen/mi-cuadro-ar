@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Cuadro Mágico — Juan</title>
@@ -167,7 +168,7 @@
 
     <!-- ESCENA A-FRAME ESTATICA EN EL BODY PARA EVITAR BUGS DE TAMAÑO/CAMARA -->
     <a-scene 
-      mindar-image="imageTargetSrc: ./juan.mind; autoStart: true; uiLoading: yes; uiScanning: yes; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 60;" 
+      mindar-image="imageTargetSrc: ./juan.mind; autoStart: true; uiLoading: yes; uiScanning: yes; filterMinCF: 0.00001; filterBeta: 0.0001; warmupTolerance: 10; missTolerance: 60;" 
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false" 
@@ -177,7 +178,7 @@
         <video 
           id="clientVideo" 
           src="./juan.mp4" 
-          preload="auto" 
+          preload="metadata" 
           loop="true" 
           crossorigin="anonymous" 
           webkit-playsinline 
