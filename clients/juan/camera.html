@@ -6,102 +6,108 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Cuadro Mágico — Juan</title>
     
-    <!-- Librerías de A-Frame y MindAR -->
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
       body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
       
-      /* Pantalla de Inicio (Splash Screen) */
       #splash-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: radial-gradient(circle, #1e1e2f 0%, #0a0a0c 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        color: white;
-        text-align: center;
-        transition: opacity 0.5s ease-out;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        z-index: 10000; color: white; text-align: center; transition: opacity 0.5s ease-out;
       }
-
       .splash-content {
-        padding: 30px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 30px; border-radius: 20px; background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       }
-
       h1 { margin-bottom: 10px; font-size: 24px; color: #fff; }
       p { margin-bottom: 30px; color: #ccc; font-size: 16px; }
-
       .btn-start {
-        padding: 16px 40px;
-        font-size: 18px;
-        font-weight: bold;
-        background: linear-gradient(135deg, #6e8efb, #a777e3);
-        color: white;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
+        padding: 16px 40px; font-size: 18px; font-weight: bold;
+        background: linear-gradient(135deg, #6e8efb, #a777e3); color: white;
+        border: none; border-radius: 50px; cursor: pointer; transition: 0.2s;
       }
 
-      .btn-start:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 20px rgba(110, 142, 251, 0.6);
+      /* 2D Fallback / Fullscreen UI Container */
+      #fallback-ui {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.95); z-index: 9999;
+        display: none; flex-direction: column; justify-content: center; align-items: center;
+      }
+      #fallback-ui .video-wrapper {
+        position: relative; width: 100%; max-width: 100vw; max-height: 100vh;
+        display: flex; justify-content: center; align-items: center;
+      }
+      #fallback-ui video {
+        width: 100%; height: 100%; max-height: 100vh; object-fit: contain; pointer-events: auto;
+      }
+      /* Controles encima del 2D */
+      .fallback-controls {
+        position: absolute; bottom: 20px; right: 20px;
+        display: flex; gap: 15px; opacity: 0.7; transition: 0.3s;
+      }
+      .fallback-controls:hover { opacity: 1; }
+      .btn-icon {
+        background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
+        width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; cursor: pointer;
+      }
+      .btn-icon img { width: 24px; height: 24px; }
+      #btn-close-fb {
+        position: absolute; top: 20px; left: 20px; z-index: 10;
+        background: rgba(0,0,0,0.6); color: white; border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer;
       }
 
-      /* Botón para activar el sonido */
+      /* Botón sonido AR */
       #ar-ui-overlay {
-        position: fixed;
-        bottom: 40px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        display: none;
+        position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 1000; display: none;
       }
-      
       .btn-sound {
-        padding: 12px 25px;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 30px;
-        font-weight: bold;
-        cursor: pointer;
-        backdrop-filter: blur(5px);
-        box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+        padding: 12px 25px; background: rgba(0, 0, 0, 0.7); color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 30px; font-weight: bold; cursor: pointer;
       }
     </style>
 
     <script>
       /* Componente crítico para evitar el cuadro negro en móviles */
       AFRAME.registerComponent('video-texture-update', {
-        init: function () {
-          this.textureReady = false;
-        },
+        init: function () { this.textureReady = false; },
         tick: function () {
           if (!this.textureReady) {
             const mesh = this.el.getObject3D('mesh');
-            if (mesh && mesh.material && mesh.material.map) {
-              this.textureReady = true;
-            }
+            if (mesh && mesh.material && mesh.material.map) this.textureReady = true;
             return;
           }
           const mesh = this.el.getObject3D('mesh');
-          if (mesh && mesh.material && mesh.material.map) {
-            mesh.material.map.needsUpdate = true;
-          }
+          if (mesh && mesh.material && mesh.material.map) mesh.material.map.needsUpdate = true;
+        }
+      });
+
+      /* COMPONENTE INTERACTIVO 3D: Detectar toques al video */
+      AFRAME.registerComponent('ar-video-controls', {
+        init: function () {
+          const video = document.querySelector("#clientVideo");
+          
+          this.el.addEventListener('click', () => {
+            if (!video) return;
+            // Play/Pause toggle
+            if (video.paused) {
+              video.play();
+            } else {
+              video.pause();
+            }
+          });
+        }
+      });
+
+       /* COMPONENTE INTERACTIVO 3D: Botón Fullscreen */
+       AFRAME.registerComponent('ar-fullscreen-btn', {
+        init: function () {
+          this.el.addEventListener('click', (evt) => {
+            evt.stopPropagation(); // Evitar que el click se pase al video gigante de atras y active play/pause
+            enterFallbackMode();
+          });
         }
       });
 
@@ -113,45 +119,85 @@
           this.el.addEventListener('targetFound', () => {
             console.log("Cuadro detectado");
             ui.style.display = "block";
-            // Previene errores en safari al intentar play() sin evento explícito antes
-            if(video) video.play().catch(e => console.error("Error al reproducir video:", e));
+            window.isTargetVisible = true;
+            exitFallbackMode(); // Si estaba en 2D y volvió a enfocar, que vuelva a 3D.
+            if(video) video.play().catch(e => console.error(e));
           });
 
           this.el.addEventListener('targetLost', () => {
             console.log("Cuadro perdido");
             ui.style.display = "none";
-            if(video) video.pause();
+            window.isTargetVisible = false;
+            // Al perderse de la pantalla, que pase a fullscreen/2D automáticamente si venía mirando.
+            if(video && !video.paused) {
+               enterFallbackMode();
+            }
           });
         }
       });
 
+      // ---- Logica del modo 2D Híbrido ----
+      window.isTargetVisible = false;
+
+      function enterFallbackMode() {
+        const fallback = document.getElementById('fallback-ui');
+        const arVideo = document.getElementById('clientVideo');
+        const fbVideo = document.getElementById('fbVideo');
+        
+        fallback.style.display = "flex";
+        document.getElementById('ar-ui-overlay').style.display = "none";
+        
+        // Sincronizamos tiempo y play
+        if(arVideo && fbVideo) {
+           fbVideo.currentTime = arVideo.currentTime;
+           arVideo.pause(); 
+           fbVideo.play();
+           fbVideo.muted = arVideo.muted;
+        }
+      }
+
+      function exitFallbackMode() {
+        // En dispositivo si usamos la real Fullscreen API deberiamos salir:
+        if (document.fullscreenElement) { document.exitFullscreen().catch(()=>{}); }
+
+        const fallback = document.getElementById('fallback-ui');
+        const arVideo = document.getElementById('clientVideo');
+        const fbVideo = document.getElementById('fbVideo');
+        
+        fallback.style.display = "none";
+        if(window.isTargetVisible) { document.getElementById('ar-ui-overlay').style.display = "block"; }
+        
+        if(arVideo && fbVideo && fallback.style.display === "none") {
+           arVideo.currentTime = fbVideo.currentTime;
+           fbVideo.pause();
+           // Si devolvimos a AR y el target era visible, continua play. Si no, queda pusa.
+           if(window.isTargetVisible) { arVideo.play(); }
+        }
+      }
+
+      function requestRealFullscreen() {
+         const fb = document.getElementById('fallback-ui');
+         if (fb.requestFullscreen) fb.requestFullscreen();
+         else if (fb.webkitRequestFullscreen) fb.webkitRequestFullscreen();
+      }
+
       function startAR() {
         const splash = document.getElementById('splash-screen');
-        const video = document.getElementById('clientVideo');
+        const arVid = document.getElementById('clientVideo');
+        const fbVid = document.getElementById('fbVideo');
         
-        // Desbloquear autoplay de video en navegadores móviles (hack estándar)
-        if (video) {
-          video.play().then(() => {
-            video.pause();
-            video.currentTime = 0;
-            
-            splash.style.opacity = '0';
-            setTimeout(() => {
-              splash.style.display = 'none';
-            }, 500);
-          }).catch(err => {
-            console.error("Fallo inicial en interacción:", err);
-            splash.style.display = 'none';
-          });
-        } else {
-            splash.style.display = 'none';
-        }
+        // Init de videos
+        if (arVid) arVid.play().then(() => { arVid.pause(); arVid.currentTime = 0; }).catch(()=>{});
+        if (fbVid) fbVid.play().then(() => { fbVid.pause(); fbVid.currentTime = 0; }).catch(()=>{});
+        
+        splash.style.opacity = '0';
+        setTimeout(() => { splash.style.display = 'none'; }, 500);
       }
     </script>
   </head>
 
   <body>
-    <!-- INTERFAZ -->
+    <!-- INTERFAZ SPLASH -->
     <div id="splash-screen">
       <div class="splash-content">
         <h1>Cuadro Mágico AR</h1>
@@ -161,12 +207,23 @@
     </div>
 
     <div id="ar-ui-overlay">
-      <button class="btn-sound" onclick="document.querySelector('#clientVideo').muted = false; this.style.display='none';">
+      <button class="btn-sound" onclick="document.querySelector('#clientVideo').muted = false; document.querySelector('#fbVideo').muted = false; this.style.display='none';">
         🔊 ACTIVAR SONIDO
       </button>
     </div>
 
-    <!-- ESCENA A-FRAME ESTATICA EN EL BODY PARA EVITAR BUGS DE TAMAÑO/CAMARA -->
+    <!-- UI DEL MODO ADAPTATIVO (Se llena la pantalla de HTML superpuesto al salirse del target) -->
+    <div id="fallback-ui">
+      <button id="btn-close-fb" onclick="exitFallbackMode()">✕ Volver al Cuadro</button>
+      <div class="video-wrapper">
+         <video id="fbVideo" src="./juan.mp4" playsinline webkit-playsinline loop controls></video>
+         <div class="fallback-controls">
+           <!-- YouTube-like expand btn over HTML div -->
+           <button class="btn-icon" onclick="requestRealFullscreen()"><img src="../../img/fullscreen.svg" alt="Ampliar"></button>
+         </div>
+      </div>
+    </div>
+
     <a-scene 
       mindar-image="imageTargetSrc: ./juan.mind; autoStart: true; uiLoading: yes; uiScanning: yes; filterMinCF: 0.00001; filterBeta: 0.0001; warmupTolerance: 10; missTolerance: 60;" 
       color-space="sRGB" 
@@ -175,29 +232,21 @@
       device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <video 
-          id="clientVideo" 
-          src="./juan.mp4" 
-          preload="metadata" 
-          loop="true" 
-          crossorigin="anonymous" 
-          webkit-playsinline 
-          playsinline 
-          muted>
-        </video>
+        <video id="clientVideo" src="./juan.mp4" preload="metadata" loop="true" crossorigin="anonymous" webkit-playsinline playsinline muted></video>
+        <img id="icon-fs" src="../../img/fullscreen.svg">
       </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <!-- Raycaster inyectado a la cámara para "tocar" los <a-plane y a-image class="clickable"> -->
+      <a-camera position="0 0 0" look-controls="enabled: false">
+         <a-entity cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .clickable"></a-entity>
+      </a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0" video-handler>
-        <a-plane
-          material="shader: flat; src: #clientVideo; transparent: false;"
-          width="1"
-          height="0.75"
-          position="0 0 0"
-          rotation="0 0 0"
-          video-texture-update>
-        </a-plane>
+        <!-- VIDEO INTERACTIVO: Escucha play/pause si lo tocan (clase .clickable asignada) -->
+        <a-plane class="clickable" ar-video-controls material="shader: flat; src: #clientVideo; transparent: false;" width="1" height="0.75" position="0 0 0" rotation="0 0 0" video-texture-update></a-plane>
+        
+        <!-- ICONO DE EXPANDIR (YouTube Style): Sobre el video abajo a la derecha -->
+        <a-image class="clickable" ar-fullscreen-btn src="#icon-fs" width="0.15" height="0.15" position="0.4 -0.3 0.02" transparent="true"></a-image>
       </a-entity>
       
     </a-scene>
