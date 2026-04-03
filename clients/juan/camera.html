@@ -2,15 +2,18 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <!-- El status-bar-style en black-translucent ayuda a inmersión en PWA -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Cuadro Mágico — Juan</title>
     
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
-      body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
       
       #splash-screen {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -31,36 +34,37 @@
         border: none; border-radius: 50px; cursor: pointer; transition: 0.2s;
       }
 
-      /* 2D Fallback / Fullscreen UI Container */
+      /* 2D Fallback / Pantalla Completa Adaptativa */
       #fallback-ui {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: rgba(0,0,0,0.95); z-index: 9999;
+        background: rgba(0,0,0,0.98); z-index: 9999;
         display: none; flex-direction: column; justify-content: center; align-items: center;
       }
       #fallback-ui .video-wrapper {
-        position: relative; width: 100%; max-width: 100vw; max-height: 100vh;
+        position: relative; width: 100%; height: 100%;
         display: flex; justify-content: center; align-items: center;
       }
       #fallback-ui video {
-        width: 100%; height: 100%; max-height: 100vh; object-fit: contain; pointer-events: auto;
+        width: 100%; height: 100%; object-fit: contain; pointer-events: auto;
       }
-      /* Controles encima del 2D */
+      
       .fallback-controls {
-        position: absolute; bottom: 20px; right: 20px;
-        display: flex; gap: 15px; opacity: 0.7; transition: 0.3s;
+        position: absolute; bottom: 30px; right: 30px;
+        display: flex; gap: 15px; opacity: 0.8; z-index: 10001; 
       }
-      .fallback-controls:hover { opacity: 1; }
+      .fallback-controls:active { opacity: 1; }
+      
       .btn-icon {
-        background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
-        width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; cursor: pointer;
+        background: rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
+        width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; cursor: pointer;
       }
-      .btn-icon img { width: 24px; height: 24px; }
+      .btn-icon img { width: 30px; height: 30px; pointer-events: none; }
+      
       #btn-close-fb {
-        position: absolute; top: 20px; left: 20px; z-index: 10;
-        background: rgba(0,0,0,0.6); color: white; border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer;
+        position: absolute; top: 30px; left: 20px; z-index: 10001;
+        background: rgba(200,50,50,0.8); color: white; font-weight: bold; border: 2px solid rgba(255,255,255,0.5); padding: 12px 25px; border-radius: 30px; cursor: pointer;
       }
 
-      /* Botón sonido AR */
       #ar-ui-overlay {
         position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 1000; display: none;
       }
@@ -70,7 +74,6 @@
     </style>
 
     <script>
-      /* Componente crítico para evitar el cuadro negro en móviles */
       AFRAME.registerComponent('video-texture-update', {
         init: function () { this.textureReady = false; },
         tick: function () {
@@ -84,18 +87,12 @@
         }
       });
 
-      /* COMPONENTE INTERACTIVO 3D: Detectar toques al video */
+      /* COMPONENTE INTERACTIVO 3D: Detectar toques al video con evento 'click' limpio */
       AFRAME.registerComponent('ar-video-controls', {
         init: function () {
           const video = document.querySelector("#clientVideo");
-          // Reemplazo de 'click' por 'mousedown' y 'touchstart' dado que MindAR y WebGL interceptan clicks a nivel canvas y se desactivan al saltar a HTML2D y volver
-          this.el.addEventListener('mousedown', (evt) => {
-            evt.stopPropagation();
-            if (!video) return;
-            if (video.paused) { video.play(); } else { video.pause(); }
-          });
-          this.el.addEventListener('touchstart', (evt) => {
-            evt.stopPropagation();
+          // Para AFrame mobile en Safari el 'click' con rayOrigin:mouse es el más confiable y no colapsa pre-eventos
+          this.el.addEventListener('click', (evt) => {
             if (!video) return;
             if (video.paused) { video.play(); } else { video.pause(); }
           });
@@ -105,12 +102,9 @@
        /* COMPONENTE INTERACTIVO 3D: Botón Fullscreen */
        AFRAME.registerComponent('ar-fullscreen-btn', {
         init: function () {
-          this.el.addEventListener('mousedown', (evt) => {
-            evt.stopPropagation();
-            enterFallbackMode();
-          });
-          this.el.addEventListener('touchstart', (evt) => {
-            evt.stopPropagation();
+          this.el.addEventListener('click', (evt) => {
+            evt.stopPropagation(); 
+            // Disparar entrada a modo 2D manual
             enterFallbackMode();
           });
         }
@@ -125,34 +119,42 @@
             console.log("Cuadro detectado");
             ui.style.display = "block";
             window.isTargetVisible = true;
-            exitFallbackMode(); // Si estaba en 2D y volvió a enfocar, que vuelva a 3D.
+            
+            const fallback = document.getElementById('fallback-ui');
+            if (fallback.style.display !== "none" && !window.isFullscreenApiActive) {
+               // Retornamos automáticamente al mundo Real 3D si reenfocó y NO está atrincherado en el modo FullScreen Nativo
+               exitFallbackMode(); 
+            }
             if(video) video.play().catch(e => console.error(e));
           });
 
           this.el.addEventListener('targetLost', () => {
-            console.log("Cuadro perdido");
-            ui.style.display = "none";
-            window.isTargetVisible = false;
-            // Al perderse de la pantalla, que pase a fullscreen/2D automáticamente si venía mirando.
-            if(video && !video.paused) {
-               enterFallbackMode();
-            }
+             console.log("Cuadro perdido");
+             ui.style.display = "none";
+             window.isTargetVisible = false;
+             
+             // Si estabamos viéndolo, lo mandamos a fallback 2D para que no se apague al mover cabezas rápido.
+             if(video && !video.paused) {
+                 enterFallbackMode();
+             }
           });
         }
       });
 
-      // ---- Logica del modo 2D Híbrido ----
       window.isTargetVisible = false;
+      window.isFullscreenApiActive = false;
 
       function enterFallbackMode() {
         const fallback = document.getElementById('fallback-ui');
         const arVideo = document.getElementById('clientVideo');
         const fbVideo = document.getElementById('fbVideo');
         
+        // Bloquear touch events hacia atras (A-Frame)
+        document.querySelector('a-scene').style.pointerEvents = "none";
+        
         fallback.style.display = "flex";
         document.getElementById('ar-ui-overlay').style.display = "none";
         
-        // Sincronizamos tiempo y play
         if(arVideo && fbVideo) {
            fbVideo.currentTime = arVideo.currentTime;
            arVideo.pause(); 
@@ -162,47 +164,62 @@
       }
 
       function exitFallbackMode() {
-        // En dispositivo si usamos la real Fullscreen API deberiamos salir:
-        if (document.fullscreenElement) { document.exitFullscreen().catch(()=>{}); }
-
+        // Normalizar UI devuelta al 3D
         const fallback = document.getElementById('fallback-ui');
         const arVideo = document.getElementById('clientVideo');
         const fbVideo = document.getElementById('fbVideo');
         
         fallback.style.display = "none";
+        document.querySelector('a-scene').style.pointerEvents = "auto";
         if(window.isTargetVisible) { document.getElementById('ar-ui-overlay').style.display = "block"; }
         
-        if(arVideo && fbVideo && fallback.style.display === "none") {
+        if(arVideo && fbVideo) {
            arVideo.currentTime = fbVideo.currentTime;
            fbVideo.pause();
-           // Si devolvimos a AR y el target era visible, continua play. Si no, queda pusa.
            if(window.isTargetVisible) { arVideo.play(); }
         }
       }
 
-      function requestRealFullscreen() {
-         const fb = document.getElementById('fallback-ui');
-         if (fb.requestFullscreen) fb.requestFullscreen();
-         else if (fb.webkitRequestFullscreen) fb.webkitRequestFullscreen();
+      function toggleRealFullscreen() {
+         /* MAGIA PARA EL CELULAR: API Nativa al elemento Video. */
+         /* Si llamas FS a un DIV, iOS no esconde la barra. Si lo haces a un <video>, el reproductor absorbe la pantalla perfectamente! */
+         const fbVideo = document.getElementById('fbVideo');
+         
+         if (document.fullscreenElement || document.webkitFullscreenElement) {
+             // Si ya estaba en Fullscreen nativo, sale.
+             if(document.exitFullscreen) document.exitFullscreen();
+             else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+             window.isFullscreenApiActive = false;
+         } else {
+             window.isFullscreenApiActive = true;
+             // Si está en fallback de browser y quiere verdaderamente ocultar las barras:
+             if (fbVideo.requestFullscreen) fbVideo.requestFullscreen();
+             else if (fbVideo.webkitEnterFullscreen) fbVideo.webkitEnterFullscreen(); // Este es Crítico para iPhones
+         }
       }
 
       function startAR() {
-        // Enforzar fullscreen apenas iniciar la página con gesto real del usuario
-        const docElm = document.documentElement;
-        if (docElm.requestFullscreen) docElm.requestFullscreen().catch(()=>{});
-        else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen().catch(()=>{});
-
         const splash = document.getElementById('splash-screen');
         const arVid = document.getElementById('clientVideo');
         const fbVid = document.getElementById('fbVideo');
         
-        // Init de videos
         if (arVid) arVid.play().then(() => { arVid.pause(); arVid.currentTime = 0; }).catch(()=>{});
         if (fbVid) fbVid.play().then(() => { fbVid.pause(); fbVid.currentTime = 0; }).catch(()=>{});
         
         splash.style.opacity = '0';
         setTimeout(() => { splash.style.display = 'none'; }, 500);
       }
+      
+      // Controlar para destrabar el video si el usuario interactua globalmente con FallBack Video Play/Pause (que puede desactivarlo el fallback auto)
+      document.addEventListener("DOMContentLoaded", () => {
+         const fbVideo = document.getElementById('fbVideo');
+         fbVideo.addEventListener('click', () => {
+            if(fbVideo.paused) fbVideo.play(); else fbVideo.pause();
+         });
+         
+         // Escuchar salidas de FS nativo (Botón Done nativo de iOs o swipe down)
+         fbVideo.addEventListener('webkitendfullscreen', () => { window.isFullscreenApiActive = false; });
+      });
     </script>
   </head>
 
@@ -222,14 +239,15 @@
       </button>
     </div>
 
-    <!-- UI DEL MODO ADAPTATIVO (Se llena la pantalla de HTML superpuesto al salirse del target) -->
+    <!-- UI DEL MODO ADAPTATIVO: Abarca desde salir del Cuadro 3D de repente hasta oprimir expandir -->
     <div id="fallback-ui">
       <button id="btn-close-fb" onclick="exitFallbackMode()">✕ Volver al Cuadro</button>
       <div class="video-wrapper">
-         <video id="fbVideo" src="./juan.mp4" playsinline webkit-playsinline loop controls></video>
+         <!-- Quitamos controls predefinido para usar nuestro boton limpio, y para que en click pause() sin estorbos, salvo nativo iOs en fs -->
+         <video id="fbVideo" src="./juan.mp4" playsinline webkit-playsinline loop></video>
          <div class="fallback-controls">
-           <!-- YouTube-like expand btn over HTML div -->
-           <button class="btn-icon" onclick="requestRealFullscreen()"><img src="../../img/fullscreen.svg" alt="Ampliar"></button>
+           <!-- YouTube-like nativo request FS -->
+           <button class="btn-icon" onclick="toggleRealFullscreen()"><img src="../../img/fullscreen.svg" alt="Ampliar"></button>
          </div>
       </div>
     </div>
@@ -246,16 +264,13 @@
         <img id="icon-fs" src="../../img/fullscreen.svg">
       </a-assets>
 
-      <!-- Raycaster inyectado a la cámara para "tocar" los <a-plane y a-image class="clickable"> -->
+      <!-- Raycaster 3D con Clicks sincrónicos habilitados -->
       <a-camera position="0 0 0" look-controls="enabled: false">
          <a-entity cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .clickable"></a-entity>
       </a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0" video-handler>
-        <!-- VIDEO INTERACTIVO: Escucha play/pause si lo tocan (clase .clickable asignada) -->
         <a-plane class="clickable" ar-video-controls material="shader: flat; src: #clientVideo; transparent: false;" width="1" height="0.75" position="0 0 0" rotation="0 0 0" video-texture-update></a-plane>
-        
-        <!-- ICONO DE EXPANDIR (YouTube Style): Sobre el video abajo a la derecha -->
         <a-image class="clickable" ar-fullscreen-btn src="#icon-fs" width="0.15" height="0.15" position="0.4 -0.3 0.02" transparent="true"></a-image>
       </a-entity>
       
