@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <!-- El status-bar-style en black-translucent ayuda a inmersión en PWA -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Cuadro Mágico — Juan</title>
     
@@ -34,7 +33,6 @@
         border: none; border-radius: 50px; cursor: pointer; transition: 0.2s;
       }
 
-      /* 2D Fallback / Pantalla Completa Adaptativa */
       #fallback-ui {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
         background: rgba(0,0,0,0.98); z-index: 9999;
@@ -52,7 +50,6 @@
         position: absolute; bottom: 30px; right: 30px;
         display: flex; gap: 15px; opacity: 0.8; z-index: 10001; 
       }
-      .fallback-controls:active { opacity: 1; }
       
       .btn-icon {
         background: rgba(0,0,0,0.8); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
@@ -74,6 +71,7 @@
     </style>
 
     <script>
+      /* Componente para actualizar textura de video cada frame */
       AFRAME.registerComponent('video-texture-update', {
         init: function () { this.textureReady = false; },
         tick: function () {
@@ -87,29 +85,7 @@
         }
       });
 
-      /* COMPONENTE INTERACTIVO 3D: Detectar toques al video con click sintetico purificado de Aframe Scene Cursor */
-      AFRAME.registerComponent('ar-video-controls', {
-        init: function () {
-          const video = document.querySelector("#clientVideo");
-          
-          this.el.addEventListener('click', (evt) => {
-            evt.stopPropagation();
-            if (!video) return;
-            if (video.paused) { video.play(); } else { video.pause(); }
-          });
-        }
-      });
-
-       /* COMPONENTE INTERACTIVO 3D: Botón Fullscreen */
-       AFRAME.registerComponent('ar-fullscreen-btn', {
-        init: function () {
-          this.el.addEventListener('click', (evt) => {
-            evt.stopPropagation(); 
-            enterFallbackMode();
-          });
-        }
-      });
-
+      /* Componente de tracking AR sin ningún cursor/raycaster de A-Frame */
       AFRAME.registerComponent('video-handler', {
         init: function () {
           const video = document.querySelector("#clientVideo");
@@ -122,7 +98,6 @@
             
             const fallback = document.getElementById('fallback-ui');
             if (fallback.style.display !== "none" && !window.isFullscreenApiActive) {
-               // Retornamos automáticamente al mundo Real 3D si reenfocó y NO está atrincherado en el modo FullScreen Nativo
                exitFallbackMode(); 
             }
             if(video) video.play().catch(e => console.error(e));
@@ -132,8 +107,6 @@
              console.log("Cuadro perdido");
              ui.style.display = "none";
              window.isTargetVisible = false;
-             
-             // Si estabamos viéndolo, lo mandamos a fallback 2D para que no se apague al mover cabezas rápido.
              if(video && !video.paused) {
                  enterFallbackMode();
              }
@@ -161,7 +134,6 @@
       }
 
       function exitFallbackMode() {
-        // Normalizar UI devuelta al 3D
         const fallback = document.getElementById('fallback-ui');
         const arVideo = document.getElementById('clientVideo');
         const fbVideo = document.getElementById('fbVideo');
@@ -177,20 +149,15 @@
       }
 
       function toggleRealFullscreen() {
-         /* MAGIA PARA EL CELULAR: API Nativa al elemento Video. */
-         /* Si llamas FS a un DIV, iOS no esconde la barra. Si lo haces a un <video>, el reproductor absorbe la pantalla perfectamente! */
          const fbVideo = document.getElementById('fbVideo');
-         
          if (document.fullscreenElement || document.webkitFullscreenElement) {
-             // Si ya estaba en Fullscreen nativo, sale.
              if(document.exitFullscreen) document.exitFullscreen();
              else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
              window.isFullscreenApiActive = false;
          } else {
              window.isFullscreenApiActive = true;
-             // Si está en fallback de browser y quiere verdaderamente ocultar las barras:
              if (fbVideo.requestFullscreen) fbVideo.requestFullscreen();
-             else if (fbVideo.webkitEnterFullscreen) fbVideo.webkitEnterFullscreen(); // Este es Crítico para iPhones
+             else if (fbVideo.webkitEnterFullscreen) fbVideo.webkitEnterFullscreen();
          }
       }
 
@@ -206,21 +173,84 @@
         setTimeout(() => { splash.style.display = 'none'; }, 500);
       }
       
-      // Controlar para destrabar el video si el usuario interactua globalmente con FallBack Video Play/Pause (que puede desactivarlo el fallback auto)
+      /* ============================================================
+         RAYCASTER MANUAL CON THREE.JS
+         MindAR captura todos los eventos touch del canvas para su
+         tracking de imagenes, bloqueando el cursor de A-Frame.
+         La solucion es escuchar directamente en el canvas y
+         hacer raycasting manual con Three.js.
+         ============================================================ */
       document.addEventListener("DOMContentLoaded", () => {
+         // Fallback video play/pause
          const fbVideo = document.getElementById('fbVideo');
          fbVideo.addEventListener('click', () => {
             if(fbVideo.paused) fbVideo.play(); else fbVideo.pause();
          });
-         
-         // Escuchar salidas de FS nativo (Botón Done nativo de iOs o swipe down)
          fbVideo.addEventListener('webkitendfullscreen', () => { window.isFullscreenApiActive = false; });
+
+         // Esperar a que A-Frame y MindAR inicialicen la escena
+         const sceneEl = document.querySelector('a-scene');
+         sceneEl.addEventListener('loaded', () => {
+            const canvas = sceneEl.canvas;
+            const threeCamera = sceneEl.camera;
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            // Referencia directa a los meshes 3D de nuestros elementos clickeables
+            const videoPlane = document.querySelector('#videoPlane');
+            const fsButton = document.querySelector('#fsButton');
+            
+            canvas.addEventListener('touchend', (evt) => {
+               // Ignorar si hay un overlay de Fallback activo por encima
+               if(document.getElementById('fallback-ui').style.display === 'flex') return;
+               
+               const touch = evt.changedTouches[0];
+               const rect = canvas.getBoundingClientRect();
+               
+               // Normalizar coordenadas de toque a rango [-1, 1] para Three.js
+               mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+               mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+               
+               raycaster.setFromCamera(mouse, threeCamera);
+               
+               // Recoger todos los meshes clickeables
+               const clickables = [];
+               if(fsButton) {
+                  const fsMesh = fsButton.getObject3D('mesh');
+                  if(fsMesh) clickables.push({ mesh: fsMesh, action: 'fullscreen' });
+               }
+               if(videoPlane) {
+                  const vpMesh = videoPlane.getObject3D('mesh');
+                  if(vpMesh) clickables.push({ mesh: vpMesh, action: 'playpause' });
+               }
+               
+               // Priorizar el botón fullscreen (está al frente en Z)
+               const allMeshes = clickables.map(c => c.mesh);
+               const intersects = raycaster.intersectObjects(allMeshes, true);
+               
+               if(intersects.length > 0) {
+                  const hitMesh = intersects[0].object;
+                  // Buscar a cuál de nuestros clickables pertenece
+                  const matched = clickables.find(c => c.mesh === hitMesh || hitMesh.parent === c.mesh || c.mesh.parent === hitMesh);
+                  
+                  if(matched) {
+                     if(matched.action === 'fullscreen') {
+                        enterFallbackMode();
+                     } else if(matched.action === 'playpause') {
+                        const video = document.getElementById('clientVideo');
+                        if(video) {
+                           if(video.paused) video.play(); else video.pause();
+                        }
+                     }
+                  }
+               }
+            });
+         });
       });
     </script>
   </head>
 
   <body>
-    <!-- INTERFAZ SPLASH -->
     <div id="splash-screen">
       <div class="splash-content">
         <h1>Cuadro Mágico AR</h1>
@@ -235,14 +265,11 @@
       </button>
     </div>
 
-    <!-- UI DEL MODO ADAPTATIVO: Abarca desde salir del Cuadro 3D de repente hasta oprimir expandir -->
     <div id="fallback-ui">
       <button id="btn-close-fb" onclick="exitFallbackMode()">✕ Volver al Cuadro</button>
       <div class="video-wrapper">
-         <!-- Quitamos controls predefinido para usar nuestro boton limpio, y para que en click pause() sin estorbos, salvo nativo iOs en fs -->
          <video id="fbVideo" src="./juan.mp4" playsinline webkit-playsinline loop></video>
          <div class="fallback-controls">
-           <!-- YouTube-like nativo request FS -->
            <button class="btn-icon" onclick="toggleRealFullscreen()"><img src="../../img/fullscreen.svg" alt="Ampliar"></button>
          </div>
       </div>
@@ -253,9 +280,7 @@
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false" 
-      device-orientation-permission-ui="enabled: false"
-      cursor="rayOrigin: mouse; fuse: false" 
-      raycaster="objects: .clickable; near: 0; far: 1000">
+      device-orientation-permission-ui="enabled: false">
       
       <a-assets>
         <video id="clientVideo" src="./juan.mp4" preload="metadata" loop="true" crossorigin="anonymous" webkit-playsinline playsinline muted></video>
@@ -265,8 +290,8 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0" video-handler>
-        <a-plane class="clickable" ar-video-controls material="shader: flat; src: #clientVideo; transparent: false;" width="1" height="0.75" position="0 0 0" rotation="0 0 0" video-texture-update></a-plane>
-        <a-image class="clickable" ar-fullscreen-btn src="#icon-fs" width="0.15" height="0.15" position="0.4 -0.3 0.02" transparent="true"></a-image>
+        <a-plane id="videoPlane" material="shader: flat; src: #clientVideo; transparent: false;" width="1" height="0.75" position="0 0 0" rotation="0 0 0" video-texture-update></a-plane>
+        <a-image id="fsButton" src="#icon-fs" width="0.15" height="0.15" position="0.4 -0.3 0.02" transparent="true"></a-image>
       </a-entity>
       
     </a-scene>
