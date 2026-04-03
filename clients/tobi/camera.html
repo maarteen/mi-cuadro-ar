@@ -87,12 +87,19 @@
         }
       });
 
-      /* COMPONENTE INTERACTIVO 3D: Detectar toques al video con evento 'click' limpio */
+      /* COMPONENTE INTERACTIVO 3D: Detectar toques al video nativo crudo para celulares (mousedown y touchstart envés de click sintético que se tranca) */
       AFRAME.registerComponent('ar-video-controls', {
         init: function () {
           const video = document.querySelector("#clientVideo");
-          // Para AFrame mobile en Safari el 'click' con rayOrigin:mouse es el más confiable y no colapsa pre-eventos
-          this.el.addEventListener('click', (evt) => {
+          
+          this.el.addEventListener('mousedown', (evt) => {
+            evt.stopPropagation();
+            if (!video) return;
+            if (video.paused) { video.play(); } else { video.pause(); }
+          });
+          
+          this.el.addEventListener('touchstart', (evt) => {
+            evt.stopPropagation();
             if (!video) return;
             if (video.paused) { video.play(); } else { video.pause(); }
           });
@@ -102,9 +109,12 @@
        /* COMPONENTE INTERACTIVO 3D: Botón Fullscreen */
        AFRAME.registerComponent('ar-fullscreen-btn', {
         init: function () {
-          this.el.addEventListener('click', (evt) => {
+          this.el.addEventListener('mousedown', (evt) => {
             evt.stopPropagation(); 
-            // Disparar entrada a modo 2D manual
+            enterFallbackMode();
+          });
+          this.el.addEventListener('touchstart', (evt) => {
+            evt.stopPropagation(); 
             enterFallbackMode();
           });
         }
