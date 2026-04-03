@@ -75,6 +75,15 @@
         padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer;
         backdrop-filter: blur(5px);
       }
+
+      #btn-help-camera {
+        position: fixed; top: 20px; left: 20px; z-index: 1000;
+        background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.4);
+        width: 40px; height: 40px; border-radius: 50%; font-weight: bold; cursor: pointer;
+        backdrop-filter: blur(5px);
+        display: flex; justify-content: center; align-items: center; font-size: 18px;
+        text-decoration: none;
+      }
     </style>
 
     <script>
@@ -185,6 +194,7 @@
         setTimeout(() => { 
             splash.style.display = 'none'; 
             document.getElementById('btn-exit-camera').style.display = 'block';
+            document.getElementById('btn-help-camera').style.display = 'flex';
         }, 500);
       }
       
@@ -297,6 +307,7 @@
     </div>
     
     <button id="btn-exit-camera" onclick="window.location.href='../../index.html'" style="display:none;">✕ Salir</button>
+    <a id="btn-help-camera" href="../../ayuda.html" style="display:none;">?</a>
 
     <div id="fallback-ui">
       <button id="btn-close-fb" onclick="exitFallbackMode()">✕ Volver al Cuadro</button>

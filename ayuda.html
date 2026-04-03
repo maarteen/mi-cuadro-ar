@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ayuda — Cuadro Mágico</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <style>
+    body { 
+        font-family: 'Segoe UI', Tahoma, Verdana, sans-serif; background: #0a0a0c; color: #fff; margin: 0; padding: 20px; line-height: 1.6; 
+    }
+    h1 { color: #6e8efb; text-align: center; font-size: 26px; margin-bottom: 30px; }
+    .card { 
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+        padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    h2 { font-size: 18px; color: #a777e3; margin-top: 0; display: flex; align-items: center; gap: 10px; }
+    h2 span { background: #6e8efb; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 14px; }
+    p { margin: 0; color: #ccc; font-size: 15px; }
+    
+    .footer-actions { margin-top: 40px; }
+    .btn { 
+        display: block; width: 100%; text-align: center; padding: 16px; 
+        background: linear-gradient(135deg, #6e8efb, #a777e3); color: white; 
+        text-decoration: none; border-radius: 12px; font-weight: bold; margin-bottom: 15px; box-sizing: border-box; 
+    }
+    .btn-secondary { background: transparent; border: 2px solid rgba(255,255,255,0.2); color: #fff; }
+  </style>
+</head>
+<body>
+  <h1>Cómo usar el Cuadro</h1>
+  
+  <div class="card">
+    <h2><span>1</span> Escanea tu Cuadro</h2>
+    <p>Apunta la cámara de tu celular hacia tu Cuadro Mágico. Mantén el celular estable a una distancia media para que la imagen se vea completa y la magia pueda iniciar.</p>
+  </div>
+  
+  <div class="card">
+    <h2><span>2</span> Toca para Pausar/Reproducir</h2>
+    <p>Una vez que el video cobre vida, simplemente haz "tap" (toca tu pantalla) sobre la imagen del video para poder pausarlo o reanudarlo cuando quieras.</p>
+  </div>
+  
+  <div class="card">
+    <h2><span>3</span> Desliza para Recargar</h2>
+    <p>¿Perdiste la cámara, se trabó o quieres reiniciar la experiencia desde cero? Desliza fuertemente tu dedo hacia abajo por la pantalla para refrescar la página automáticamente.</p>
+  </div>
+  
+  <div class="footer-actions">
+    <a href="javascript:history.back()" class="btn btn-secondary">← Volver a la Cámara</a>
+    <a href="index.html" class="btn">✨ Quiero pedir mi Cuadro Mágico</a>
+  </div>
+</body>
+</html>
