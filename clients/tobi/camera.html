@@ -87,18 +87,12 @@
         }
       });
 
-      /* COMPONENTE INTERACTIVO 3D: Detectar toques al video nativo crudo para celulares (mousedown y touchstart envés de click sintético que se tranca) */
+      /* COMPONENTE INTERACTIVO 3D: Detectar toques al video con click sintetico purificado de Aframe Scene Cursor */
       AFRAME.registerComponent('ar-video-controls', {
         init: function () {
           const video = document.querySelector("#clientVideo");
           
-          this.el.addEventListener('mousedown', (evt) => {
-            evt.stopPropagation();
-            if (!video) return;
-            if (video.paused) { video.play(); } else { video.pause(); }
-          });
-          
-          this.el.addEventListener('touchstart', (evt) => {
+          this.el.addEventListener('click', (evt) => {
             evt.stopPropagation();
             if (!video) return;
             if (video.paused) { video.play(); } else { video.pause(); }
@@ -109,11 +103,7 @@
        /* COMPONENTE INTERACTIVO 3D: Botón Fullscreen */
        AFRAME.registerComponent('ar-fullscreen-btn', {
         init: function () {
-          this.el.addEventListener('mousedown', (evt) => {
-            evt.stopPropagation(); 
-            enterFallbackMode();
-          });
-          this.el.addEventListener('touchstart', (evt) => {
+          this.el.addEventListener('click', (evt) => {
             evt.stopPropagation(); 
             enterFallbackMode();
           });
@@ -263,17 +253,16 @@
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false" 
-      device-orientation-permission-ui="enabled: false">
+      device-orientation-permission-ui="enabled: false"
+      cursor="rayOrigin: mouse; fuse: false" 
+      raycaster="objects: .clickable; near: 0; far: 1000">
       
       <a-assets>
         <video id="clientVideo" src="./tobi.mp4" preload="metadata" loop="true" crossorigin="anonymous" webkit-playsinline playsinline muted></video>
         <img id="icon-fs" src="../../img/fullscreen.svg">
       </a-assets>
 
-      <!-- Raycaster 3D con Clicks sincrónicos habilitados -->
-      <a-camera position="0 0 0" look-controls="enabled: false">
-         <a-entity cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .clickable"></a-entity>
-      </a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0" video-handler>
         <a-plane class="clickable" ar-video-controls material="shader: flat; src: #clientVideo; transparent: false;" width="1" height="1.33" position="0 0 0" rotation="0 0 0" video-texture-update></a-plane>
