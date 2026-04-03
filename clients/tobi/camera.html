@@ -68,6 +68,13 @@
       .btn-sound {
         padding: 12px 25px; background: rgba(0, 0, 0, 0.7); color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 30px; font-weight: bold; cursor: pointer;
       }
+      
+      #btn-exit-camera {
+        position: fixed; top: 20px; right: 20px; z-index: 1000;
+        background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.4);
+        padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer;
+        backdrop-filter: blur(5px);
+      }
     </style>
 
     <script>
@@ -175,7 +182,10 @@
         if (fbVid) fbVid.play().then(() => { fbVid.pause(); fbVid.currentTime = 0; }).catch(()=>{});
         
         splash.style.opacity = '0';
-        setTimeout(() => { splash.style.display = 'none'; }, 500);
+        setTimeout(() => { 
+            splash.style.display = 'none'; 
+            document.getElementById('btn-exit-camera').style.display = 'block';
+        }, 500);
       }
       
       /* ============================================================
@@ -192,6 +202,22 @@
             if(fbVideo.paused) fbVideo.play(); else fbVideo.pause();
          });
          fbVideo.addEventListener('webkitendfullscreen', () => { window.isFullscreenApiActive = false; });
+
+         // Refresh pull-to-refresh manual
+         let touchStartY = 0;
+         document.addEventListener('touchstart', e => {
+            touchStartY = e.touches[0].clientY;
+         }, {passive: true});
+         
+         document.addEventListener('touchend', e => {
+            const touchEndY = e.changedTouches[0].clientY;
+            if (touchEndY - touchStartY > 150) {
+               // Evita recargar si está en la pantalla de inicio o en pantalla completa
+               if(document.getElementById('splash-screen').style.display === 'none' && document.getElementById('fallback-ui').style.display !== 'flex') {
+                  window.location.reload();
+               }
+            }
+         }, {passive: true});
 
          // Esperar a que A-Frame y MindAR inicialicen la escena
          const sceneEl = document.querySelector('a-scene');
@@ -269,6 +295,8 @@
         🔊 ACTIVAR SONIDO
       </button>
     </div>
+    
+    <button id="btn-exit-camera" onclick="window.location.href='../../index.html'" style="display:none;">✕ Salir</button>
 
     <div id="fallback-ui">
       <button id="btn-close-fb" onclick="exitFallbackMode()">✕ Volver al Cuadro</button>
