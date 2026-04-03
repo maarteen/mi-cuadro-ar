@@ -149,9 +149,6 @@
         const arVideo = document.getElementById('clientVideo');
         const fbVideo = document.getElementById('fbVideo');
         
-        // Bloquear touch events hacia atras (A-Frame)
-        document.querySelector('a-scene').style.pointerEvents = "none";
-        
         fallback.style.display = "flex";
         document.getElementById('ar-ui-overlay').style.display = "none";
         
@@ -170,7 +167,6 @@
         const fbVideo = document.getElementById('fbVideo');
         
         fallback.style.display = "none";
-        document.querySelector('a-scene').style.pointerEvents = "auto";
         if(window.isTargetVisible) { document.getElementById('ar-ui-overlay').style.display = "block"; }
         
         if(arVideo && fbVideo) {
