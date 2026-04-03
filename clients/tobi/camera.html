@@ -126,10 +126,15 @@
         document.getElementById('ar-ui-overlay').style.display = "none";
         
         if(arVideo && fbVideo) {
+           // Sincronizar timestamp y arrancar fbVideo ANTES de pausar arVideo para transición sin corte
            fbVideo.currentTime = arVideo.currentTime;
-           arVideo.pause(); 
-           fbVideo.play();
            fbVideo.muted = arVideo.muted;
+           fbVideo.play().then(() => {
+              // Recién cuando fbVideo está reproduciéndose, silenciamos el AR
+              arVideo.pause();
+           }).catch(() => {
+              arVideo.pause();
+           });
         }
       }
 
