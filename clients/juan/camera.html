@@ -88,15 +88,16 @@
       AFRAME.registerComponent('ar-video-controls', {
         init: function () {
           const video = document.querySelector("#clientVideo");
-          
-          this.el.addEventListener('click', () => {
+          // Reemplazo de 'click' por 'mousedown' y 'touchstart' dado que MindAR y WebGL interceptan clicks a nivel canvas y se desactivan al saltar a HTML2D y volver
+          this.el.addEventListener('mousedown', (evt) => {
+            evt.stopPropagation();
             if (!video) return;
-            // Play/Pause toggle
-            if (video.paused) {
-              video.play();
-            } else {
-              video.pause();
-            }
+            if (video.paused) { video.play(); } else { video.pause(); }
+          });
+          this.el.addEventListener('touchstart', (evt) => {
+            evt.stopPropagation();
+            if (!video) return;
+            if (video.paused) { video.play(); } else { video.pause(); }
           });
         }
       });
@@ -104,8 +105,12 @@
        /* COMPONENTE INTERACTIVO 3D: Botón Fullscreen */
        AFRAME.registerComponent('ar-fullscreen-btn', {
         init: function () {
-          this.el.addEventListener('click', (evt) => {
-            evt.stopPropagation(); // Evitar que el click se pase al video gigante de atras y active play/pause
+          this.el.addEventListener('mousedown', (evt) => {
+            evt.stopPropagation();
+            enterFallbackMode();
+          });
+          this.el.addEventListener('touchstart', (evt) => {
+            evt.stopPropagation();
             enterFallbackMode();
           });
         }
@@ -182,6 +187,11 @@
       }
 
       function startAR() {
+        // Enforzar fullscreen apenas iniciar la página con gesto real del usuario
+        const docElm = document.documentElement;
+        if (docElm.requestFullscreen) docElm.requestFullscreen().catch(()=>{});
+        else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen().catch(()=>{});
+
         const splash = document.getElementById('splash-screen');
         const arVid = document.getElementById('clientVideo');
         const fbVid = document.getElementById('fbVideo');
