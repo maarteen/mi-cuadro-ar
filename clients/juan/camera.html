@@ -33,22 +33,25 @@
         border: none; border-radius: 50px; cursor: pointer; transition: 0.2s;
       }
 
+      #clientVideo {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
+        object-fit: contain; z-index: -1; opacity: 0.001; pointer-events: none;
+        background: #000;
+        transition: opacity 0.3s ease;
+      }
+      #clientVideo.fallback-active {
+        z-index: 9998; opacity: 1; pointer-events: auto;
+      }
+
       #fallback-ui {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-        background: rgba(0,0,0,0.98); z-index: 9999;
+        z-index: 9999; pointer-events: none;
         display: none; flex-direction: column; justify-content: center; align-items: center;
-      }
-      #fallback-ui .video-wrapper {
-        position: relative; width: 100%; height: 100%;
-        display: flex; justify-content: center; align-items: center;
-      }
-      #fallback-ui video {
-        width: 100%; height: 100%; object-fit: contain; pointer-events: auto;
       }
       
       .fallback-controls {
         position: absolute; bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); right: 30px;
-        display: flex; gap: 15px; opacity: 0.8; z-index: 10001; 
+        display: flex; gap: 15px; opacity: 0.8; z-index: 10001; pointer-events: auto;
       }
       
       .btn-icon {
@@ -58,7 +61,7 @@
       .btn-icon img { width: 30px; height: 30px; pointer-events: none; }
       
       #btn-close-fb {
-        position: absolute; top: 30px; left: 20px; z-index: 10001;
+        position: absolute; top: 30px; left: 20px; z-index: 10001; pointer-events: auto;
         background: rgba(200,50,50,0.8); color: white; font-weight: bold; border: 2px solid rgba(255,255,255,0.5); padding: 12px 25px; border-radius: 30px; cursor: pointer;
       }
 
@@ -136,10 +139,12 @@
       function enterFallbackMode() {
         document.getElementById('fallback-ui').style.display = "flex";
         document.getElementById('ar-ui-overlay').style.display = "none";
+        document.getElementById('clientVideo').classList.add('fallback-active');
       }
 
       function exitFallbackMode() {
         document.getElementById('fallback-ui').style.display = "none";
+        document.getElementById('clientVideo').classList.remove('fallback-active');
         if(window.isTargetVisible) { document.getElementById('ar-ui-overlay').style.display = "block"; }
       }
 
@@ -176,12 +181,13 @@
       document.addEventListener("DOMContentLoaded", () => {
          // Fallback video play/pause
          const video = document.getElementById('clientVideo');
-         const fallbackWrapper = document.querySelector('.video-wrapper');
-         
-         fallbackWrapper.addEventListener('click', (e) => {
-            if(e.target.closest('.fallback-controls') || e.target.closest('#btn-close-fb')) return;
-            if(video && video.paused) video.play(); else if(video) video.pause();
-         });
+         if(video) {
+            video.addEventListener('click', () => {
+               if(video.classList.contains('fallback-active')) {
+                  if(video.paused) video.play(); else video.pause();
+               }
+            });
+         }
          
          if(video) video.addEventListener('webkitendfullscreen', () => { window.isFullscreenApiActive = false; });
 
@@ -281,13 +287,12 @@
     <button id="btn-exit-camera" onclick="window.location.href='../../index.html'" style="display:none;">✕ Salir</button>
     <a id="btn-help-camera" href="../../ayuda.html" style="display:none;">?</a>
 
+    <video id="clientVideo" src="./juan.mp4" preload="metadata" loop="true" crossorigin="anonymous" webkit-playsinline playsinline muted></video>
+    
     <div id="fallback-ui">
       <button id="btn-close-fb" onclick="exitFallbackMode()">✕ Volver al Cuadro</button>
-      <div class="video-wrapper">
-         <video id="clientVideo" src="./juan.mp4" preload="metadata" loop="true" crossorigin="anonymous" webkit-playsinline playsinline muted></video>
-         <div class="fallback-controls">
-           <button class="btn-icon" onclick="toggleRealFullscreen()"><img src="../../img/fullscreen.svg" alt="Ampliar"></button>
-         </div>
+      <div class="fallback-controls">
+         <button class="btn-icon" onclick="toggleRealFullscreen()"><img src="../../img/fullscreen.svg" alt="Ampliar"></button>
       </div>
     </div>
 
