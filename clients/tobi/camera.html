@@ -134,40 +134,13 @@
       window.isFullscreenApiActive = false;
 
       function enterFallbackMode() {
-        const fallback = document.getElementById('fallback-ui');
-        const arVideo = document.getElementById('clientVideo');
-        const wrapper = fallback.querySelector('.video-wrapper');
-        
-        fallback.style.display = "flex";
+        document.getElementById('fallback-ui').style.display = "flex";
         document.getElementById('ar-ui-overlay').style.display = "none";
-        
-        // Trasladar el video AR nativo al contenedor visual superior
-        if(arVideo) {
-           wrapper.insertBefore(arVideo, wrapper.firstChild);
-           arVideo.style.display = "block";
-           arVideo.style.position = "absolute";
-           arVideo.style.width = "100%";
-           arVideo.style.height = "100%";
-           arVideo.style.objectFit = "contain";
-           arVideo.style.pointerEvents = "auto";
-           arVideo.style.zIndex = "1";
-        }
       }
 
       function exitFallbackMode() {
-        const fallback = document.getElementById('fallback-ui');
-        const arVideo = document.getElementById('clientVideo');
-        
-        fallback.style.display = "none";
-        
-        if (arVideo) {
-           document.querySelector('a-assets').appendChild(arVideo);
-           arVideo.style.display = "none";
-        }
-        
-        if(window.isTargetVisible) { 
-           document.getElementById('ar-ui-overlay').style.display = "block"; 
-        }
+        document.getElementById('fallback-ui').style.display = "none";
+        if(window.isTargetVisible) { document.getElementById('ar-ui-overlay').style.display = "block"; }
       }
 
       function toggleRealFullscreen() {
@@ -311,6 +284,7 @@
     <div id="fallback-ui">
       <button id="btn-close-fb" onclick="exitFallbackMode()">✕ Volver al Cuadro</button>
       <div class="video-wrapper">
+         <video id="clientVideo" src="./tobi.mp4" preload="metadata" loop="true" crossorigin="anonymous" webkit-playsinline playsinline muted></video>
          <div class="fallback-controls">
            <button class="btn-icon" onclick="toggleRealFullscreen()"><img src="../../img/fullscreen.svg" alt="Ampliar"></button>
          </div>
@@ -325,7 +299,6 @@
       device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <video id="clientVideo" src="./tobi.mp4" preload="metadata" loop="true" crossorigin="anonymous" webkit-playsinline playsinline muted></video>
         <img id="icon-fs" src="../../img/fullscreen.svg">
       </a-assets>
 
