@@ -60,6 +60,13 @@
       }
       .btn-icon img { width: 30px; height: 30px; pointer-events: none; }
       
+      #fallback-play-btn {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        z-index: 10002; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+        background: rgba(0,0,0,0.6); padding: 25px; border-radius: 50%;
+        display: flex; justify-content: center; align-items: center;
+      }
+
       #btn-close-fb {
         position: absolute; top: 30px; left: 20px; z-index: 10001; pointer-events: auto;
         background: rgba(200,50,50,0.8); color: white; font-weight: bold; border: 2px solid rgba(255,255,255,0.5); padding: 12px 25px; border-radius: 30px; cursor: pointer;
@@ -139,12 +146,19 @@
       function enterFallbackMode() {
         document.getElementById('fallback-ui').style.display = "flex";
         document.getElementById('ar-ui-overlay').style.display = "none";
-        document.getElementById('clientVideo').classList.add('fallback-active');
+        const video = document.getElementById('clientVideo');
+        video.classList.add('fallback-active');
+        if(video.paused) {
+           const playBtn = document.getElementById('fallback-play-btn');
+           if(playBtn) playBtn.style.opacity = '1';
+        }
       }
 
       function exitFallbackMode() {
         document.getElementById('fallback-ui').style.display = "none";
         document.getElementById('clientVideo').classList.remove('fallback-active');
+        const playBtn = document.getElementById('fallback-play-btn');
+        if(playBtn) playBtn.style.opacity = '0';
         if(window.isTargetVisible) { document.getElementById('ar-ui-overlay').style.display = "block"; }
       }
 
@@ -181,11 +195,20 @@
       document.addEventListener("DOMContentLoaded", () => {
          // Fallback video play/pause
          const video = document.getElementById('clientVideo');
+         const playBtn = document.getElementById('fallback-play-btn');
          if(video) {
             video.addEventListener('click', () => {
                if(video.classList.contains('fallback-active')) {
                   if(video.paused) video.play(); else video.pause();
                }
+            });
+            video.addEventListener('pause', () => {
+               if(video.classList.contains('fallback-active') && playBtn) {
+                  playBtn.style.opacity = '1';
+               }
+            });
+            video.addEventListener('play', () => {
+               if(playBtn) playBtn.style.opacity = '0';
             });
          }
          
@@ -290,6 +313,11 @@
     <video id="clientVideo" src="./juan.mp4" preload="metadata" loop="true" crossorigin="anonymous" webkit-playsinline playsinline muted></video>
     
     <div id="fallback-ui">
+      <div id="fallback-play-btn">
+         <svg viewBox="0 0 24 24" fill="white" width="60px" height="60px">
+            <path d="M8 5v14l11-7z"/>
+         </svg>
+      </div>
       <button id="btn-close-fb" onclick="exitFallbackMode()">✕ Volver al Cuadro</button>
       <div class="fallback-controls">
          <button class="btn-icon" onclick="toggleRealFullscreen()"><img src="../../img/fullscreen.svg" alt="Ampliar"></button>
