@@ -34,7 +34,7 @@
       }
 
       #fallback-ui {
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
         background: rgba(0,0,0,0.98); z-index: 9999;
         display: none; flex-direction: column; justify-content: center; align-items: center;
       }
@@ -47,7 +47,7 @@
       }
       
       .fallback-controls {
-        position: absolute; bottom: 30px; right: 30px;
+        position: absolute; bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); right: 30px;
         display: flex; gap: 15px; opacity: 0.8; z-index: 10001; 
       }
       
@@ -142,15 +142,10 @@
         document.getElementById('ar-ui-overlay').style.display = "none";
         
         if(arVideo && fbVideo) {
-           // Sincronizar timestamp y arrancar fbVideo ANTES de pausar arVideo para transición sin corte
            fbVideo.currentTime = arVideo.currentTime;
            fbVideo.muted = arVideo.muted;
-           fbVideo.play().then(() => {
-              // Recién cuando fbVideo está reproduciéndose, silenciamos el AR
-              arVideo.pause();
-           }).catch(() => {
-              arVideo.pause();
-           });
+           fbVideo.play();
+           setTimeout(() => { arVideo.pause(); }, 200);
         }
       }
 
