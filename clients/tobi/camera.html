@@ -136,54 +136,58 @@
       function enterFallbackMode() {
         const fallback = document.getElementById('fallback-ui');
         const arVideo = document.getElementById('clientVideo');
-        const fbVideo = document.getElementById('fbVideo');
+        const wrapper = fallback.querySelector('.video-wrapper');
         
         fallback.style.display = "flex";
         document.getElementById('ar-ui-overlay').style.display = "none";
         
-        if(arVideo && fbVideo) {
-           fbVideo.currentTime = arVideo.currentTime;
-           fbVideo.muted = arVideo.muted;
-           fbVideo.play();
-           setTimeout(() => { arVideo.pause(); }, 200);
+        // Trasladar el video AR nativo al contenedor visual superior
+        if(arVideo) {
+           wrapper.insertBefore(arVideo, wrapper.firstChild);
+           arVideo.style.display = "block";
+           arVideo.style.position = "absolute";
+           arVideo.style.width = "100%";
+           arVideo.style.height = "100%";
+           arVideo.style.objectFit = "contain";
+           arVideo.style.pointerEvents = "auto";
+           arVideo.style.zIndex = "1";
         }
       }
 
       function exitFallbackMode() {
         const fallback = document.getElementById('fallback-ui');
         const arVideo = document.getElementById('clientVideo');
-        const fbVideo = document.getElementById('fbVideo');
         
         fallback.style.display = "none";
-        if(window.isTargetVisible) { document.getElementById('ar-ui-overlay').style.display = "block"; }
         
-        if(arVideo && fbVideo) {
-           arVideo.currentTime = fbVideo.currentTime;
-           fbVideo.pause();
-           if(window.isTargetVisible) { arVideo.play(); }
+        if (arVideo) {
+           document.querySelector('a-assets').appendChild(arVideo);
+           arVideo.style.display = "none";
+        }
+        
+        if(window.isTargetVisible) { 
+           document.getElementById('ar-ui-overlay').style.display = "block"; 
         }
       }
 
       function toggleRealFullscreen() {
-         const fbVideo = document.getElementById('fbVideo');
+         const video = document.getElementById('clientVideo');
          if (document.fullscreenElement || document.webkitFullscreenElement) {
              if(document.exitFullscreen) document.exitFullscreen();
              else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
              window.isFullscreenApiActive = false;
          } else {
              window.isFullscreenApiActive = true;
-             if (fbVideo.requestFullscreen) fbVideo.requestFullscreen();
-             else if (fbVideo.webkitEnterFullscreen) fbVideo.webkitEnterFullscreen();
+             if (video.requestFullscreen) video.requestFullscreen();
+             else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
          }
       }
 
       function startAR() {
         const splash = document.getElementById('splash-screen');
         const arVid = document.getElementById('clientVideo');
-        const fbVid = document.getElementById('fbVideo');
         
         if (arVid) arVid.play().then(() => { arVid.pause(); arVid.currentTime = 0; }).catch(()=>{});
-        if (fbVid) fbVid.play().then(() => { fbVid.pause(); fbVid.currentTime = 0; }).catch(()=>{});
         
         splash.style.opacity = '0';
         setTimeout(() => { 
@@ -195,18 +199,18 @@
       
       /* ============================================================
          RAYCASTER MANUAL CON THREE.JS
-         MindAR captura todos los eventos touch del canvas para su
-         tracking de imagenes, bloqueando el cursor de A-Frame.
-         La solucion es escuchar directamente en el canvas y
-         hacer raycasting manual con Three.js.
          ============================================================ */
       document.addEventListener("DOMContentLoaded", () => {
          // Fallback video play/pause
-         const fbVideo = document.getElementById('fbVideo');
-         fbVideo.addEventListener('click', () => {
-            if(fbVideo.paused) fbVideo.play(); else fbVideo.pause();
+         const video = document.getElementById('clientVideo');
+         const fallbackWrapper = document.querySelector('.video-wrapper');
+         
+         fallbackWrapper.addEventListener('click', (e) => {
+            if(e.target.closest('.fallback-controls') || e.target.closest('#btn-close-fb')) return;
+            if(video && video.paused) video.play(); else if(video) video.pause();
          });
-         fbVideo.addEventListener('webkitendfullscreen', () => { window.isFullscreenApiActive = false; });
+         
+         if(video) video.addEventListener('webkitendfullscreen', () => { window.isFullscreenApiActive = false; });
 
          // Refresh pull-to-refresh manual
          let touchStartY = 0;
@@ -296,7 +300,7 @@
     </div>
 
     <div id="ar-ui-overlay">
-      <button class="btn-sound" onclick="document.querySelector('#clientVideo').muted = false; document.querySelector('#fbVideo').muted = false; this.style.display='none';">
+      <button class="btn-sound" onclick="document.querySelector('#clientVideo').muted = false; this.style.display='none';">
         🔊 ACTIVAR SONIDO
       </button>
     </div>
@@ -307,7 +311,6 @@
     <div id="fallback-ui">
       <button id="btn-close-fb" onclick="exitFallbackMode()">✕ Volver al Cuadro</button>
       <div class="video-wrapper">
-         <video id="fbVideo" src="./tobi.mp4" playsinline webkit-playsinline loop></video>
          <div class="fallback-controls">
            <button class="btn-icon" onclick="toggleRealFullscreen()"><img src="../../img/fullscreen.svg" alt="Ampliar"></button>
          </div>
