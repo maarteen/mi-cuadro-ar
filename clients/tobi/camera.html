@@ -63,8 +63,9 @@
       #fallback-play-btn {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         z-index: 10002; pointer-events: none; opacity: 0; transition: opacity 0.2s;
-        background: rgba(0,0,0,0.6); padding: 25px; border-radius: 50%;
+        background: rgba(255,255,255,0.9); width: 60px; height: 60px; border-radius: 50%;
         display: flex; justify-content: center; align-items: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       }
 
       #btn-close-fb {
@@ -314,7 +315,7 @@
     
     <div id="fallback-ui">
       <div id="fallback-play-btn">
-         <svg viewBox="0 0 24 24" fill="white" width="60px" height="60px">
+         <svg viewBox="0 0 24 24" fill="black" width="30px" height="30px" style="margin-left: 4px;">
             <path d="M8 5v14l11-7z"/>
          </svg>
       </div>
